@@ -69,10 +69,42 @@ body::before {
         .central-container { flex: 1; width: 100%; max-width: 400px; display: flex; flex-direction: column;
             align-items: center; padding: 20px 16px 0 16px;}
         .button-panel { width: 100%; display: flex; flex-direction: column; gap: 18px; margin-top: 12px; align-items: center;}
-        .central-btn { width: 75%; padding: 18px 0; background: #3576f6; color: #fff; font-size: 1.2rem; font-weight: 500;
-            border: none; border-radius: 25px; box-shadow: 0 2px 16px 0 rgba(53,118,246,0.10);
-            cursor: pointer; transition: background 0.2s, transform 0.1s; display: flex; align-items: center;
-            justify-content: center; gap: 12px;}
+        
+     .central-btn { 
+width: 75%; 
+padding: 18px 0; 
+background: #3576f6; 
+color: #fff; 
+font-size: 1.2rem; 
+font-weight: 500;
+border: none; 
+border-radius: 25px;
+box-shadow: 0 2px 16px 0 rgba(53,118,246,0.10);
+cursor: pointer;
+transition: background 0.2s, transform 0.1s; 
+display: flex; 
+align-items: center;
+justify-content: flex-start; /* <-- Isso alinha o conteúdo à esquerda */
+    gap: 14px; /* Distância entre ícone e texto */
+    position: relative;
+    padding-left: 32px; /* Espaço extra para o ícone não ficar colado na borda */
+}
+
+.btn-icon {
+    width: 28px;
+    height: 28px;
+    margin-right: 10px;
+    object-fit: contain;
+    flex-shrink: 0; /* Mantém o ícone fixo, sem esticar ou encolher */
+}
+
+
+
+
+
+
+
+        
         .central-btn:hover { background: #2254a6; transform: translateY(-2px) scale(1.03);}
         .central-btn[disabled]{opacity:0.6;cursor:not-allowed;}
         #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
