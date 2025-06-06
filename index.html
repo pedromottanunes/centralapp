@@ -65,15 +65,16 @@
     </div>
     <div class="central-container">
       <div class="button-panel">
-    <button class="central-btn" onclick="abrirGravador()">🎤 Gravar Reunião</button>
-    <button class="central-btn" onclick="alert('Função leitor de PDF em desenvolvimento')">📄 Ler Projetos</button>
-    <button class="central-btn" onclick="alert('Função orçamento em desenvolvimento')">💰 Fazer Orçamento</button>
-    <button class="central-btn" id="btnGoogleAuth" onclick="googleSignIn()">🔐 Login com Google Drive</button>
-    <button class="central-btn" id="btnGoogleOut" onclick="googleSignOut()" style="display:none;">Sair do Google</button>
-          </div>
-        <div id="userEmail"></div>
-        <div id="authStatus" style="font-size:0.95rem;color:#2254a6;margin-top:8px;"></div>
+        <button class="central-btn" onclick="abrirGravador()">🎤 Gravar Reunião</button>
+        <button class="central-btn" onclick="abrirLerProjeto()">📄 Ler Projetos</button>
+        <button class="central-btn" onclick="alert('Função orçamento em desenvolvimento')">💰 Fazer Orçamento</button>
+        <button class="central-btn" id="btnGoogleAuth" onclick="googleSignIn()">🔐 Login com Google Drive</button>
+        <button class="central-btn" id="btnGoogleOut" onclick="googleSignOut()" style="display:none;">Sair do Google</button>
+      </div>
+      <div id="userEmail"></div>
+      <div id="authStatus" style="font-size:0.95rem;color:#2254a6;margin-top:8px;"></div>
     </div>
+    <!-- MODAL GRAVADOR DE ÁUDIO -->
     <div class="modal-bg" id="modalGravador">
         <div class="modal-gravador">
             <button class="close-btn" onclick="fecharGravador()">&times;</button>
@@ -88,21 +89,22 @@
             <div id="statusMsg" class="status-msg"></div>
         </div>
     </div>
+    <!-- MODAL LER PROJETOS (PDF) -->
+    <div class="modal-bg" id="modalLerProjeto">
+        <div class="modal-gravador">
+            <button class="close-btn" onclick="fecharLerProjeto()">&times;</button>
+            <h3>Carregar Projeto (PDF)</h3>
+            <input type="file" id="inputPdf" accept="application/pdf" style="margin-bottom:16px;">
+            <div id="pdfFileName" style="font-size:1rem; color:#2254a6;"></div>
+            <button id="btnUploadPdf" class="central-btn" style="width:100%; display:none;" onclick="salvarPdfNoDrive()">Salvar PDF no Google Drive</button>
+            <div id="statusMsgPdf" class="status-msg"></div>
+        </div>
+    </div>
 <script>
-/*
-CONFIGS – TROQUE para os seus:
-- CLIENT_ID: OAuth 2.0 Web Client ID do Google
-- API_KEY:  API Key do Google
-- _ID: Opcional, id da pasta no seu Drive (ou deixe vazio)
-*/
-
-
-// CONFIGURAÇÃO GOOGLE API
-        const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com'; // Substitua pelo seu
-        const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA'; // Substitua pelo seu
-        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-  
-
+/* CONFIGS – TROQUE para os seus: */
+const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 let accessToken = '';
 let tokenClient = null;
@@ -122,7 +124,6 @@ window.onload = function() {
 function googleSignIn() {
     tokenClient.requestAccessToken();
 }
-
 function handleTokenResponse(tokenResponse) {
     if (tokenResponse && tokenResponse.access_token) {
         accessToken = tokenResponse.access_token;
@@ -134,7 +135,6 @@ function handleTokenResponse(tokenResponse) {
         document.getElementById('authStatus').textContent = "Erro na autenticação.";
     }
 }
-
 function googleSignOut() {
     accessToken = '';
     document.getElementById('authStatus').textContent = "Faça login para salvar no Google Drive.";
@@ -142,7 +142,6 @@ function googleSignOut() {
     document.getElementById('btnGoogleOut').style.display = 'none';
     document.getElementById('userEmail').textContent = '';
 }
-
 async function getUserEmail() {
     if (!accessToken) return;
     try {
@@ -252,7 +251,7 @@ function resetarGravador() {
     audioBlobGlobal = null;
 }
 
-// =============== Salvar no Google Drive ===============
+// =============== Salvar no Google Drive (áudio) ===============
 async function salvarNoDrive() {
     if (!accessToken) {
         alert("Você precisa conectar com o Google Drive antes de salvar.");
@@ -267,9 +266,6 @@ async function salvarNoDrive() {
         name: "gravacao_" + new Date().toISOString().replace(/[:.]/g,'_') + ".wav",
         mimeType: audioBlobGlobal.type,
     };
-    //if (PASTA_ID && PASTA_ID !== 'ID_DA_PASTA') {
-        //metadata.parents = [PASTA_ID];
-   // }
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', audioBlobGlobal);
@@ -336,6 +332,80 @@ function encodeWAV(audioBuffer) {
         view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
     }
     return buffer;
+}
+
+// =============== Ler Projetos (Upload PDF) ===============
+const modalLerProjeto = document.getElementById('modalLerProjeto');
+const inputPdf = document.getElementById('inputPdf');
+const pdfFileName = document.getElementById('pdfFileName');
+const btnUploadPdf = document.getElementById('btnUploadPdf');
+const statusMsgPdf = document.getElementById('statusMsgPdf');
+let pdfBlobGlobal = null;
+
+function abrirLerProjeto() {
+    modalLerProjeto.classList.add('open');
+    resetarLerProjeto();
+}
+function fecharLerProjeto() {
+    modalLerProjeto.classList.remove('open');
+    resetarLerProjeto();
+}
+function resetarLerProjeto() {
+    inputPdf.value = "";
+    pdfFileName.textContent = "";
+    btnUploadPdf.style.display = 'none';
+    statusMsgPdf.textContent = "";
+    pdfBlobGlobal = null;
+}
+
+// Quando escolher o arquivo PDF, mostrar nome e liberar botão upload
+inputPdf.onchange = function() {
+    const file = inputPdf.files[0];
+    if (file && file.type === "application/pdf") {
+        pdfFileName.textContent = "Selecionado: " + file.name;
+        btnUploadPdf.style.display = 'block';
+        pdfBlobGlobal = file;
+    } else {
+        pdfFileName.textContent = "Selecione um arquivo PDF válido.";
+        btnUploadPdf.style.display = 'none';
+        pdfBlobGlobal = null;
+    }
+};
+
+// Função upload PDF
+async function salvarPdfNoDrive() {
+    if (!accessToken) {
+        alert("Você precisa conectar com o Google Drive antes de salvar.");
+        return;
+    }
+    if (!pdfBlobGlobal) {
+        alert("Nenhum PDF selecionado.");
+        return;
+    }
+    statusMsgPdf.textContent = 'Enviando PDF para o Google Drive...';
+    const metadata = {
+        name: "projeto_" + new Date().toISOString().replace(/[:.]/g,'_') + ".pdf",
+        mimeType: pdfBlobGlobal.type,
+    };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', pdfBlobGlobal);
+
+    try {
+        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+            method: 'POST',
+            headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+            body: form,
+        });
+        const result = await response.json();
+        if(result.id){
+            statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
+        }else{
+            statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
+        }
+    } catch(e){
+        statusMsgPdf.textContent = 'Erro na conexão com o Google Drive.';
+    }
 }
 </script>
 </body>
