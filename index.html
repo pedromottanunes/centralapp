@@ -16,102 +16,147 @@
             flex-direction: column;
             align-items: center;
         }
-        
-//COLOCAR BACKGROUND
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 50%;
-    //background-image: url('https://drive.google.com/thumbnail?id=17RaYYpYzA-Nlm9dGhbp1NanG7-e96-3y');
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.3;
-    z-index: 0;
-    pointer-events: none;
-}
-
-
-//CONFIGURAÇÃO DO RODAPÉ
-.footer-logo {
-    margin-top: 40px;
-    margin-bottom: 20px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    z-index: 1;
-}
-
-.footer-logo img {
-    max-height: 50px;
-    opacity: 0.7;
-}
-
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.3;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .footer-logo {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            z-index: 1;
+        }
+        .footer-logo img {
+            max-height: 50px;
+            opacity: 0.7;
+        }
         .btn-icon {
-    width: 33px;
-    height: 33px;
-    margin-right: 3px;
-    object-fit: contain;
-}
-
-        
-        .header { width: 100%; background: #232b36; color: #fff; padding: 24px 0 18px 0;
-            display: flex; flex-direction: column; align-items: center;
-            border-bottom-left-radius: 32px; border-bottom-right-radius: 32px;
-            box-shadow: 0 4px 24px 0 rgba(0,0,0,0.05);}
-        .logo { width: 64px; height: 64px; margin-bottom: 8px; border-radius: 16px;
-            background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);}
-        .header-title { font-size: 2rem; font-weight: 600; letter-spacing: 1px; margin-bottom: 2px;}
-        .central-container { flex: 1; width: 100%; max-width: 400px; display: flex; flex-direction: column;
-            align-items: center; padding: 20px 16px 0 16px;}
-        .button-panel { width: 100%; display: flex; flex-direction: column; gap: 18px; margin-top: 12px; align-items: center;}
-        
-     .central-btn { 
-width: 75%; 
-padding: 18px 0; 
-background: #3576f6; 
-color: #fff; 
-font-size: 1.2rem; 
-font-weight: 500;
-border: none; 
-border-radius: 25px;
-box-shadow: 0 2px 16px 0 rgba(53,118,246,0.10);
-cursor: pointer;
-transition: background 0.2s, transform 0.1s; 
-display: flex; 
-align-items: center;
-justify-content: flex-start; /* <-- Isso alinha o conteúdo à esquerda */
-    gap: 14px; /* Distância entre ícone e texto */
-    position: relative;
-    padding-left: 32px; /* Espaço extra para o ícone não ficar colado na borda */
-}
-
-.btn-icon {
-    width: 28px;
-    height: 28px;
-    margin-right: 10px;
-    object-fit: contain;
-    flex-shrink: 0; /* Mantém o ícone fixo, sem esticar ou encolher */
-}
-
-
-
-
-
-
-
-        
+            width: 28px;
+            height: 28px;
+            margin-right: 10px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+        .header {
+            width: 100%;
+            background: #232b36;
+            color: #fff;
+            padding: 24px 0 18px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-bottom-left-radius: 32px;
+            border-bottom-right-radius: 32px;
+            box-shadow: 0 4px 24px 0 rgba(0,0,0,0.05);
+        }
+        .logo {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 8px;
+            border-radius: 16px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        .header-title {
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+        .central-container {
+            flex: 1;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px 0 16px;
+        }
+        .button-panel {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-top: 12px;
+            align-items: center;
+        }
+        .btn-row {
+            display: flex;
+            width: 90%;
+            max-width: 400px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .central-btn {
+            flex: 1 1 auto;
+            padding: 18px 0;
+            background: #3576f6;
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 500;
+            border: none;
+            border-radius: 25px;
+            box-shadow: 0 2px 16px 0 rgba(53,118,246,0.10);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 14px;
+            position: relative;
+            padding-left: 32px;
+        }
         .central-btn:hover { background: #2254a6; transform: translateY(-2px) scale(1.03);}
         .central-btn[disabled]{opacity:0.6;cursor:not-allowed;}
+        .btn-mini, .btn-mini-placeholder {
+            width: 44px;
+            height: 44px;
+            margin-left: 12px;
+            border: 2px solid #3576f6;
+            background: #fff;
+            color: #3576f6;
+            border-radius: 50%;
+            font-size: 1.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.18s, border 0.18s;
+            box-shadow: 0 2px 8px 0 rgba(53,118,246,0.10);
+        }
+        .btn-mini:hover {
+            background: #e9f3fd;
+            border-color: #2254a6;
+        }
+        .btn-mini-placeholder {
+            opacity: 0;
+            pointer-events: none;
+            border: none;
+            background: transparent;
+            box-shadow: none;
+        }
         #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
         @media (max-width: 600px) {
             .header-title { font-size: 1.4rem; }
             .central-container { padding-top: 10px; max-width: 100%; }
             .button-panel { gap: 12px; margin-top: 8px; }
+            .btn-row { width: 100%; max-width: none;}
         }
         .modal-bg {display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.45); z-index: 99; justify-content: center; align-items: center;}
@@ -126,21 +171,8 @@ justify-content: flex-start; /* <-- Isso alinha o conteúdo à esquerda */
         .audio-player {width: 100%; margin-top: 10px;}
         .status-msg {font-size: 1rem; color: #2254a6; margin-top: 5px;}
     </style>
-
-
-
-
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#3576f6">
-
-    
-
-
-
-
-
-    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#3576f6">
 </head>
 <body>
     <div class="header">
@@ -154,30 +186,43 @@ justify-content: flex-start; /* <-- Isso alinha o conteúdo à esquerda */
     </div>
     <div class="central-container">
       <div class="button-panel">
-          
-<button class="central-btn" onclick="abrirGravador()">
-    <img src="https://drive.google.com/thumbnail?id=18w8uXoehDkLb59OjpriJfYBd-unkZXp_" class="btn-icon" alt="Ícone"> Gravar Reunião</button>
-      
-      <button class="central-btn" onclick="abrirLerProjeto()">
-    <img src="https://drive.google.com/thumbnail?id=1nPWGBHim9p3EWUDIPn7XlBOHQ0tj4Hak" class="btn-icon" alt="Ícone"> Ler Projetos </button>
-
-
-  <button class="central-btn" onclick="orcamento()">
-    <img src="https://drive.google.com/thumbnail?id=107tCtV7tjLjhVAxqMDkqikmL01dw-_0c" class="btn-icon" alt="Ícone"> Fazer Orçamento </button>
-
-
-<button class="central-btn" onclick="abrirArquivosRelatorios()">
-    <img src="https://drive.google.com/thumbnail?id=1ULzvfFMDO-H2YyGlNOVJ7nUuMvrAzYc0" class="btn-icon" alt="Ícone"> Ver Relatórios
-</button>
-
-          
-        <button class="central-btn" id="btnGoogleAuth" onclick="googleSignIn()">
-    <img src="https://drive.google.com/thumbnail?id=1QcnOm_G-NjTtV8SLHd3rKwrHk2yWE3F1" class="btn-icon" alt="Ícone"> Login com Google </button>
-        <button class="central-btn" id="btnGoogleOut" onclick="googleSignOut()" style="display:none;">Sair do Google</button>
+        <!-- Linha 1: Gravar Reunião + pasta -->
+        <div class="btn-row">
+          <button class="central-btn" onclick="abrirGravador()">
+            <img src="https://drive.google.com/thumbnail?id=18w8uXoehDkLb59OjpriJfYBd-unkZXp_" class="btn-icon" alt="Ícone"> Gravar Reunião
+          </button>
+          <button class="btn-mini" onclick="abrirPastasReunioes()" title="Ver atas/relatórios de reuniões">📂</button>
+        </div>
+        <!-- Linha 2: Ler Projetos + pasta -->
+        <div class="btn-row">
+          <button class="central-btn" onclick="abrirLerProjeto()">
+            <img src="https://drive.google.com/thumbnail?id=1nPWGBHim9p3EWUDIPn7XlBOHQ0tj4Hak" class="btn-icon" alt="Ícone"> Ler Projetos
+          </button>
+          <button class="btn-mini" onclick="abrirPastasProjetos()" title="Ver relatórios de projetos">📂</button>
+        </div>
+        <!-- Linha 3: Fazer Orçamento (placeholder à direita) -->
+        <div class="btn-row">
+          <button class="central-btn" onclick="orcamento()">
+            <img src="https://drive.google.com/thumbnail?id=107tCtV7tjLjhVAxqMDkqikmL01dw-_0c" class="btn-icon" alt="Ícone"> Fazer Orçamento
+          </button>
+          <span class="btn-mini-placeholder"></span>
+        </div>
+        <!-- Linha 4: Login com Google (placeholder à direita) -->
+        <div class="btn-row">
+          <button class="central-btn" id="btnGoogleAuth" onclick="googleSignIn()">
+            <img src="https://drive.google.com/thumbnail?id=1QcnOm_G-NjTtV8SLHd3rKwrHk2yWE3F1" class="btn-icon" alt="Ícone"> Login com Google
+          </button>
+          <span class="btn-mini-placeholder"></span>
+        </div>
+        <div class="btn-row" style="display:none;" id="rowGoogleOut">
+          <button class="central-btn" id="btnGoogleOut" onclick="googleSignOut()">Sair do Google</button>
+          <span class="btn-mini-placeholder"></span>
+        </div>
       </div>
       <div id="userEmail"></div>
       <div id="authStatus" style="font-size:0.95rem;color:#2254a6;margin-top:8px;"></div>
     </div>
+
     <!-- MODAL GRAVADOR DE ÁUDIO -->
     <div class="modal-bg" id="modalGravador">
         <div class="modal-gravador">
@@ -194,19 +239,26 @@ justify-content: flex-start; /* <-- Isso alinha o conteúdo à esquerda */
         </div>
     </div>
 
-<!-- MODAL VER RELATÓRIOS -->
-<div class="modal-bg" id="modalRelatorios">
-    <div class="modal-gravador">
-        <button class="close-btn" onclick="fecharRelatorios()">&times;</button>
-        <h3>Relatórios Disponíveis</h3>
-        <div id="listaArquivosRelatorios" style="width:100%;max-height:300px;overflow:auto;padding-top:10px;"></div>
-        <div id="statusMsgRelatorios" class="status-msg"></div>
+    <!-- MODAL PASTA ATAS DE REUNIÃO -->
+    <div class="modal-bg" id="modalPastaReunioes">
+        <div class="modal-gravador">
+            <button class="close-btn" onclick="fecharPastasReunioes()">&times;</button>
+            <h3>Atas e Relatórios de Reuniões</h3>
+            <div id="listaArquivosReunioes" style="width:100%;max-height:300px;overflow:auto;padding-top:10px;"></div>
+            <div id="statusMsgReunioes" class="status-msg"></div>
+        </div>
     </div>
-</div>
 
+    <!-- MODAL PASTA RELATÓRIOS DE PROJETOS -->
+    <div class="modal-bg" id="modalPastaProjetos">
+        <div class="modal-gravador">
+            <button class="close-btn" onclick="fecharPastasProjetos()">&times;</button>
+            <h3>Relatórios de Projetos</h3>
+            <div id="listaArquivosProjetos" style="width:100%;max-height:300px;overflow:auto;padding-top:10px;"></div>
+            <div id="statusMsgProjetos" class="status-msg"></div>
+        </div>
+    </div>
 
-
-    
     <!-- MODAL LER PROJETOS (PDF) -->
     <div class="modal-bg" id="modalLerProjeto">
         <div class="modal-gravador">
@@ -218,11 +270,21 @@ justify-content: flex-start; /* <-- Isso alinha o conteúdo à esquerda */
             <div id="statusMsgPdf" class="status-msg"></div>
         </div>
     </div>
+
+    <div class="footer-logo">
+        <img src="https://drive.google.com/thumbnail?id=1W-wgNX7l3z3lqfIvhyqigqIIvH1E9M0L" alt="Logo Rodapé">
+    </div>
+
 <script>
 /* CONFIGS – TROQUE para os seus: */
 const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atas/relatórios de reuniões
+const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta de relatórios de projetos
+
+
 
 let accessToken = '';
 let tokenClient = null;
@@ -247,7 +309,7 @@ function handleTokenResponse(tokenResponse) {
         accessToken = tokenResponse.access_token;
         document.getElementById('authStatus').textContent = "Google Drive conectado.";
         document.getElementById('btnGoogleAuth').style.display = 'none';
-        document.getElementById('btnGoogleOut').style.display = '';
+        document.getElementById('rowGoogleOut').style.display = '';
         getUserEmail();
     } else {
         document.getElementById('authStatus').textContent = "Erro na autenticação.";
@@ -257,7 +319,7 @@ function googleSignOut() {
     accessToken = '';
     document.getElementById('authStatus').textContent = "Faça login para salvar no Google Drive.";
     document.getElementById('btnGoogleAuth').style.display = '';
-    document.getElementById('btnGoogleOut').style.display = 'none';
+    document.getElementById('rowGoogleOut').style.display = 'none';
     document.getElementById('userEmail').textContent = '';
 }
 async function getUserEmail() {
@@ -383,6 +445,7 @@ async function salvarNoDrive() {
     const metadata = {
         name: "gravacao_" + new Date().toISOString().replace(/[:.]/g,'_') + ".wav",
         mimeType: audioBlobGlobal.type,
+        parents: [PASTA_ATAS_ID]
     };
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
@@ -504,6 +567,7 @@ async function salvarPdfNoDrive() {
     const metadata = {
         name: "projeto_" + new Date().toISOString().replace(/[:.]/g,'_') + ".pdf",
         mimeType: pdfBlobGlobal.type,
+        parents: [PASTA_RELATORIOS_ID]
     };
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
@@ -526,29 +590,65 @@ async function salvarPdfNoDrive() {
     }
 }
 
-
-
-
-
-
-// =============== Listar Relatórios Google Drive ===============
-const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // <-- coloque só o ID
-
-function abrirArquivosRelatorios() {
-    document.getElementById('modalRelatorios').classList.add('open');
-    listarArquivosRelatorios();
+// =============== Listar Arquivos - Atas/Relatórios de Reunião ===============
+function abrirPastasReunioes() {
+    document.getElementById('modalPastaReunioes').classList.add('open');
+    listarArquivosReunioes();
 }
-function fecharRelatorios() {
-    document.getElementById('modalRelatorios').classList.remove('open');
-    document.getElementById('listaArquivosRelatorios').innerHTML = "";
-    document.getElementById('statusMsgRelatorios').textContent = "";
+function fecharPastasReunioes() {
+    document.getElementById('modalPastaReunioes').classList.remove('open');
+    document.getElementById('listaArquivosReunioes').innerHTML = "";
+    document.getElementById('statusMsgReunioes').textContent = "";
 }
-async function listarArquivosRelatorios() {
+async function listarArquivosReunioes() {
     if (!accessToken) {
-        document.getElementById('statusMsgRelatorios').textContent = 'Conecte com o Google Drive.';
+        document.getElementById('statusMsgReunioes').textContent = 'Conecte com o Google Drive.';
         return;
     }
-    document.getElementById('statusMsgRelatorios').textContent = 'Carregando arquivos...';
+    document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
+    try {
+        const resp = await fetch(
+            `https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
+            { headers: { 'Authorization': 'Bearer ' + accessToken } }
+        );
+        const data = await resp.json();
+        if (data.files && data.files.length > 0) {
+            document.getElementById('statusMsgReunioes').textContent = '';
+            let html = '<ul style="list-style:none;padding:0;">';
+            data.files.forEach(arq => {
+                const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
+                html += `<li style="margin-bottom:12px;">
+                    ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+                    <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+                </li>`;
+            });
+            html += '</ul>';
+            document.getElementById('listaArquivosReunioes').innerHTML = html;
+        } else {
+            document.getElementById('listaArquivosReunioes').innerHTML = "";
+            document.getElementById('statusMsgReunioes').textContent = 'Nenhum relatório encontrado.';
+        }
+    } catch (e) {
+        document.getElementById('statusMsgReunioes').textContent = 'Erro ao buscar arquivos.';
+    }
+}
+
+// =============== Listar Arquivos - Relatórios de Projetos ===============
+function abrirPastasProjetos() {
+    document.getElementById('modalPastaProjetos').classList.add('open');
+    listarArquivosProjetos();
+}
+function fecharPastasProjetos() {
+    document.getElementById('modalPastaProjetos').classList.remove('open');
+    document.getElementById('listaArquivosProjetos').innerHTML = "";
+    document.getElementById('statusMsgProjetos').textContent = "";
+}
+async function listarArquivosProjetos() {
+    if (!accessToken) {
+        document.getElementById('statusMsgProjetos').textContent = 'Conecte com o Google Drive.';
+        return;
+    }
+    document.getElementById('statusMsgProjetos').textContent = 'Carregando arquivos...';
     try {
         const resp = await fetch(
             `https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
@@ -556,43 +656,26 @@ async function listarArquivosRelatorios() {
         );
         const data = await resp.json();
         if (data.files && data.files.length > 0) {
-            document.getElementById('statusMsgRelatorios').textContent = '';
+            document.getElementById('statusMsgProjetos').textContent = '';
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
-                const icon = arq.mimeType === "application/pdf"
-                  ? "📄" : "🌐";
+                const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
                 html += `<li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
                 </li>`;
             });
             html += '</ul>';
-            document.getElementById('listaArquivosRelatorios').innerHTML = html;
+            document.getElementById('listaArquivosProjetos').innerHTML = html;
         } else {
-            document.getElementById('listaArquivosRelatorios').innerHTML = "";
-            document.getElementById('statusMsgRelatorios').textContent = 'Nenhum relatório encontrado.';
+            document.getElementById('listaArquivosProjetos').innerHTML = "";
+            document.getElementById('statusMsgProjetos').textContent = 'Nenhum relatório encontrado.';
         }
     } catch (e) {
-        document.getElementById('statusMsgRelatorios').textContent = 'Erro ao buscar arquivos.';
+        document.getElementById('statusMsgProjetos').textContent = 'Erro ao buscar arquivos.';
     }
 }
-
-
-
-
-
-
-
-    
 </script>
-
-
-    <div class="footer-logo">
-    <img src="https://drive.google.com/thumbnail?id=1W-wgNX7l3z3lqfIvhyqigqIIvH1E9M0L" alt="Logo Rodapé">
-</div>
-
-
-    
 
 <script>
   if ('serviceWorker' in navigator) {
@@ -601,22 +684,6 @@ async function listarArquivosRelatorios() {
         console.log('Service Worker registrado');
       });
   }
-
-
-
-
-
-
-
-
-
-    
 </script>
-
-
-
-
-
-    
 </body>
 </html>
