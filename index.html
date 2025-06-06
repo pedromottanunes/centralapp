@@ -16,6 +16,41 @@
             flex-direction: column;
             align-items: center;
         }
+        
+//COLOCAR BACKGROUND
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    //background-image: url('https://drive.google.com/thumbnail?id=17RaYYpYzA-Nlm9dGhbp1NanG7-e96-3y');
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.3;
+    z-index: 0;
+    pointer-events: none;
+}
+
+
+//CONFIGURAÇÃO DO RODAPÉ
+.footer-logo {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    z-index: 1;
+}
+
+.footer-logo img {
+    max-height: 50px;
+    opacity: 0.7;
+}
+
+        
         .header { width: 100%; background: #232b36; color: #fff; padding: 24px 0 18px 0;
             display: flex; flex-direction: column; align-items: center;
             border-bottom-left-radius: 32px; border-bottom-right-radius: 32px;
@@ -65,7 +100,11 @@
     </div>
     <div class="central-container">
       <div class="button-panel">
-        <button class="central-btn" onclick="abrirGravador()">🎤 Gravar Reunião</button>
+          
+<button class="central-btn" onclick="abrirGravador()">
+    <img src="https://drive.google.com/thumbnail?id=1xELM9QO6mPtyo0M0CCi1QZ0jIM2LBX3w" class="btn-icon" alt="Ícone"> Gravar Reunião</button>
+
+         
         <button class="central-btn" onclick="abrirLerProjeto()">📄 Ler Projetos</button>
         <button class="central-btn" onclick="alert('Função orçamento em desenvolvimento')">💰 Fazer Orçamento</button>
         <button class="central-btn" id="btnGoogleAuth" onclick="googleSignIn()">🔐 Login com Google Drive</button>
@@ -408,5 +447,11 @@ async function salvarPdfNoDrive() {
     }
 }
 </script>
+
+
+    <div class="footer-logo">
+    <img src="https://drive.google.com/thumbnail?id=1W-wgNX7l3z3lqfIvhyqigqIIvH1E9M0L" alt="Logo Rodapé">
+</div>
+
 </body>
 </html>
