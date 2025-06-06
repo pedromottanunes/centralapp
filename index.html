@@ -100,7 +100,7 @@
 CONFIGS – TROQUE para os seus:
 - CLIENT_ID: OAuth 2.0 Web Client ID do Google
 - API_KEY:  API Key do Google
-- PASTA_ID: Opcional, id da pasta no seu Drive (ou deixe vazio)
+- _ID: Opcional, id da pasta no seu Drive (ou deixe vazio)
 */
 
 
@@ -274,9 +274,9 @@ async function salvarNoDrive() {
         name: "gravacao_" + new Date().toISOString().replace(/[:.]/g,'_') + ".wav",
         mimeType: audioBlobGlobal.type,
     };
-    if (PASTA_ID && PASTA_ID !== 'ID_DA_PASTA') {
-        metadata.parents = [PASTA_ID];
-    }
+    //if (PASTA_ID && PASTA_ID !== 'ID_DA_PASTA') {
+        //metadata.parents = [PASTA_ID];
+   // }
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', audioBlobGlobal);
