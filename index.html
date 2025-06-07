@@ -782,12 +782,12 @@ async function listarArquivosReunioes() {
 
     // Helper interna para buscar arquivos de cada pasta
     async function buscarArquivos(pastaId) {
-        const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType='audio/wav' or mimeType='audio/webm')`;
-        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
-        const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
-        const data = await resp.json();
-        return data.files || [];
-    }
+    const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='image/png' or mimeType='text/html')`;
+    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    return data.files || [];
+}
 
     try {
         // Busca nas duas pastas
@@ -852,7 +852,7 @@ async function listarArquivosProjetos() {
 
     // Helper interna para buscar em cada pasta
     async function buscarArquivos(pastaId) {
-        const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='png')`;
+        const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='image/png' or mimeType='text/html')`;
         const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
         const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
         const data = await resp.json();
@@ -881,9 +881,11 @@ async function listarArquivosProjetos() {
         // Monta lista automatizada
         let htmlAutomatizados = '<ul style="list-style:none;padding:0;">';
         arquivosAutomatizados.forEach(arq => {
-            let icon = "🧠";
-            if (arq.mimeType === "application/pdf") icon = "📄";
-            else if (arq.mimeType === "image/png") icon = "🌐";
+        let icon = "🧠";
+if (arq.mimeType === "application/pdf") icon = "📄";
+else if (arq.mimeType === "image/png") icon = "🖼️"; // Ícone de imagem para PNG
+else if (arq.mimeType === "text/html") icon = "🌐";
+
             htmlAutomatizados += `<li style="margin-bottom:12px;">
                 ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                 <span style="color:#7abfa6; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
