@@ -197,49 +197,51 @@
     margin-bottom: 8px;
 }
 
+#userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
 
 
+	    
+@media (max-width: 600px) {
 
+    .header-title { font-size: 1.2rem; }
+    .central-container { padding-top: 75px; max-width: 95%; }
+    .button-panel { gap: 12px; margin-top: 8px; }
+    .btn-row { width: 100%; max-width: none; }
 
-
-        
-        #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
-        @media (max-width: 600px) {
-            .header-title { font-size: 1.2rem; }
-            .central-container { padding-top: 75px; max-width: 95%; }
-            .button-panel { gap: 12px; margin-top: 8px; }
-            .btn-row { width: 100%; max-width: none;}
-
-.central-btn {
-        padding: 10px 0;    /* <-- AQUI ALTERA A ALTURA DOS BOTÕES NO CELULAR */
+    .central-btn {
+        width: 100%;      /* Faz o botão ocupar toda a linha no mobile */
+        padding: 10px 0;  /* Altura dos botões no celular */
+        min-width: 0;
+        max-width: 100%;
     }
 
+    .btn-mini,
+    .btn-mini-placeholder {
+        width: 42px;         /* Tamanho fixo menor para mobile */
+        height: 42px;
+        margin-left: 8px;
+        margin-right: 0;     /* Remove margem para não empurrar o botão fora da tela */
+        margin-top: 0;
+        font-size: 1.2rem;   /* Tamanho do ícone */
+        box-sizing: border-box;
+    }
 
-
-  /* --- Ícone acima da pastinha --- */
+    /* Ícone acima da pastinha */
     .icon-label-absolute {
-        top: -18px;          /* Ajuste vertical (suba/diminua à vontade) */
-        left: 50%;           /* Centraliza horizontalmente no botão */
-        width: 22px;         /* Tamanho do ícone no mobile */
-        height: 22px;
+        top: -22px;
+        left: 50%;
+        width: 24px;
+        height: 24px;
         transform: translateX(-50%);
     }
 
-    /* --- Botão pastinha --- */
-    .btn-mini {
-        margin-left: 12px;    /* Ajuste horizontal: afasta/aproxima do botão principal */
-        margin-top: -3px;     /* Ajuste vertical: sobe/desce */
-        width: 55px;         /* Tamanho do círculo no mobile */
-        height: 55px;
-        font-size: 1.1rem;
+    .logo {
+        width: 40px;
+        height: 40px;
     }
-		
-		.logo {
-        width: 40px;   /* ou o valor que desejar */
-        height: 40px;  /* mantenha a proporção */
-    }
-		
-        }
+}
+	    
+    
 
 
 	    
