@@ -460,7 +460,6 @@ const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta 
 const PASTA_ATAS_AUTOMATIZADAS_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
 const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
 	
-
 let accessToken = '';
 let tokenClient = null;
 let userEmail = '';
@@ -784,7 +783,13 @@ async function listarArquivosReunioes() {
 
     // Helper interna para buscar arquivos de cada pasta
     async function buscarArquivos(pastaId) {
-const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType contains 'audio/')`;
+
+const query = `'${pastaId}' in parents`;
+
+    
+//*const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType contains 'audio/')`;
+
+	    
     const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
     const data = await resp.json();
