@@ -459,6 +459,7 @@ const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta 
 // Adicione as IDs das pastas de arquivos automatizados:
 const PASTA_ATAS_AUTOMATIZADAS_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
 const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
+
 	
 let accessToken = '';
 let tokenClient = null;
@@ -784,9 +785,8 @@ async function listarArquivosReunioes() {
     // Helper interna para buscar arquivos de cada pasta
     async function buscarArquivos(pastaId) {
 
-const query = `'${pastaId}' in parents`;
-
-    
+const query = `'1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ' in parents`;
+   
 //*const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType contains 'audio/')`;
 
 	    
