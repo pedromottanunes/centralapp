@@ -200,46 +200,42 @@
 
 
 
-
-
-        
+      
         #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
-        @media (max-width: 600px) {
-            .header-title { font-size: 1.2rem; }
-            .central-container { padding-top: 75px; max-width: 95%; }
-            .button-panel { gap: 12px; margin-top: 8px; }
-            .btn-row { width: 100%; max-width: none;}
 
-.central-btn {
-        padding: 10px 0;    /* <-- AQUI ALTERA A ALTURA DOS BOTÕES NO CELULAR */
+
+	    
+     @media (max-width: 600px) {
+    .button-panel {
+        gap: 14px;
     }
-
-
-
-  /* --- Ícone acima da pastinha --- */
-    .icon-label-absolute {
-        top: -18px;          /* Ajuste vertical (suba/diminua à vontade) */
-        left: 50%;           /* Centraliza horizontalmente no botão */
-        width: 22px;         /* Tamanho do ícone no mobile */
-        height: 22px;
-        transform: translateX(-50%);
+    .btn-row {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;                /* espaçamento horizontal entre botões */
+        justify-content: flex-start;  /* NÃO use space-between no mobile */
     }
-
-    /* --- Botão pastinha --- */
-    .btn-mini {
-        margin-left: 12px;    /* Ajuste horizontal: afasta/aproxima do botão principal */
-        margin-top: -3px;     /* Ajuste vertical: sobe/desce */
-        width: 55px;         /* Tamanho do círculo no mobile */
-        height: 55px;
-        font-size: 1.1rem;
+    .central-btn {
+        width: calc(100% - 50px);    /* Ocupe o espaço menos o tamanho do círculo */
+        min-width: 0;
+        max-width: 100%;
+        flex-shrink: 1;
+        flex-grow: 1;
+        padding: 10px 0;
     }
-		
-		.logo {
-        width: 40px;   /* ou o valor que desejar */
-        height: 40px;  /* mantenha a proporção */
+    .btn-mini,
+    .btn-mini-placeholder {
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem;
+        margin: 0;
+        flex-shrink: 0;    /* Impede de achatar o círculo */
+        flex-grow: 0;
+        box-sizing: border-box;
     }
-		
-        }
+}
 
 
 	    
