@@ -452,14 +452,12 @@ const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atasrelatórios de reuniões
-
 const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta de relatórios de projetos
 
 // Adicione as IDs das pastas de arquivos automatizados:
 const PASTA_ATAS_AUTOMATIZADAS_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
 const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
 	
-
 
 let accessToken = '';
 let tokenClient = null;
@@ -854,7 +852,7 @@ async function listarArquivosProjetos() {
 
     // Helper interna para buscar em cada pasta
     async function buscarArquivos(pastaId) {
-        const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html')`;
+        const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='png')`;
         const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
         const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
         const data = await resp.json();
