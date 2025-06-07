@@ -409,14 +409,25 @@ margin-top: -5px;      /* Desce o botão na linha */
 
 
     <!-- MODAL PASTA RELATÓRIOS DE PROJETOS -->
-    <div class="modal-bg" id="modalPastaProjetos">
-        <div class="modal-gravador">
-            <button class="close-btn" onclick="fecharPastasProjetos()">&times;</button>
-            <h3>Relatórios de Projetos</h3>
-            <div id="listaArquivosProjetos" style="width:100%;max-height:300px;overflow:auto;padding-top:10px;"></div>
-            <div id="statusMsgProjetos" class="status-msg"></div>
-        </div>
+	
+   <div class="modal-bg" id="modalPastaProjetos">
+  <div class="modal-gravador">
+    <button class="close-btn" onclick="fecharPastasProjetos()">&times;</button>
+    <h3>Relatórios de Projetos</h3>
+    <div style="display:flex; gap:24px; width:100%;">
+      <div style="flex:1; border-right:2px solid #e0e4ee; padding-right:12px;">
+        <div style="font-weight:600; color:#3576f6; margin-bottom:4px;">Projetos do Usuário</div>
+        <div id="listaArquivosProjetosUsuario" style="max-height:270px; overflow:auto;"></div>
+      </div>
+      <div style="flex:1; padding-left:12px;">
+        <div style="font-weight:600; color:#2254a6; margin-bottom:4px;">Projetos Automatizados</div>
+        <div id="listaArquivosProjetosAutomatizados" style="max-height:270px; overflow:auto;"></div>
+      </div>
     </div>
+    <div id="statusMsgProjetos" class="status-msg"></div>
+  </div>
+</div>
+
 
     <!-- MODAL LER PROJETOS (PDF) -->
     <div class="modal-bg" id="modalLerProjeto">
@@ -840,32 +851,56 @@ async function listarArquivosProjetos() {
         return;
     }
     document.getElementById('statusMsgProjetos').textContent = 'Carregando arquivos...';
-    try {
-        const resp = await fetch(
-            `https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
-            { headers: { 'Authorization': 'Bearer ' + accessToken } }
-        );
+
+    // Helper interna para buscar em cada pasta
+    async function buscarArquivos(pastaId) {
+        const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html')`;
+        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
+        const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
         const data = await resp.json();
-        if (data.files && data.files.length > 0) {
-            document.getElementById('statusMsgProjetos').textContent = '';
-            let html = '<ul style="list-style:none;padding:0;">';
-            data.files.forEach(arq => {
-                const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-                html += `<li style="margin-bottom:12px;">
-                    ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-                    <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>`;
-            });
-            html += '</ul>';
-            document.getElementById('listaArquivosProjetos').innerHTML = html;
-        } else {
-            document.getElementById('listaArquivosProjetos').innerHTML = "";
-            document.getElementById('statusMsgProjetos').textContent = 'Nenhum relatório encontrado.';
-        }
+        return data.files || [];
+    }
+
+    try {
+        // Aqui você precisa definir o ID da pasta de automatizados:
+        // Exemplo: const PASTA_RELATORIOS_AUTOMATIZADOS_ID = 'SEU_ID_AQUI';
+        const [arquivosUsuario, arquivosAutomatizados] = await Promise.all([
+            buscarArquivos(PASTA_RELATORIOS_ID),
+            buscarArquivos(PASTA_RELATORIOS_AUTOMATIZADOS_ID)
+        ]);
+
+        // Monta lista usuário
+        let htmlUsuario = '<ul style="list-style:none;padding:0;">';
+        arquivosUsuario.forEach(arq => {
+            let icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
+            htmlUsuario += `<li style="margin-bottom:12px;">
+                ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+                <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+            </li>`;
+        });
+        htmlUsuario += '</ul>';
+
+        // Monta lista automatizada
+        let htmlAutomatizados = '<ul style="list-style:none;padding:0;">';
+        arquivosAutomatizados.forEach(arq => {
+            let icon = "🧠";
+            if (arq.mimeType === "application/pdf") icon = "📄";
+            else if (arq.mimeType === "text/html") icon = "🌐";
+            htmlAutomatizados += `<li style="margin-bottom:12px;">
+                ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+                <span style="color:#7abfa6; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+            </li>`;
+        });
+        htmlAutomatizados += '</ul>';
+
+        document.getElementById('listaArquivosProjetosUsuario').innerHTML = htmlUsuario;
+        document.getElementById('listaArquivosProjetosAutomatizados').innerHTML = htmlAutomatizados;
+        document.getElementById('statusMsgProjetos').textContent = '';
     } catch (e) {
         document.getElementById('statusMsgProjetos').textContent = 'Erro ao buscar arquivos.';
     }
 }
+
 </script>
 
 <script>
