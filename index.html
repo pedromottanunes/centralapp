@@ -785,7 +785,7 @@ async function listarArquivosReunioes() {
     // Helper interna para buscar arquivos de cada pasta
     async function buscarArquivos(pastaId) {
 
-const query = `'1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ' in parents`;
+const query = `'${pastaId}' in parents`;
    
 //*const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType contains 'audio/')`;
 
