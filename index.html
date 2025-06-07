@@ -17,6 +17,7 @@
             align-items: center;
         }
 
+	    
 
 
         body::before {
@@ -371,6 +372,7 @@ margin-top: -5px;      /* Desce o botão na linha */
     </div>
 
     <!-- MODAL GRAVADOR DE ÁUDIO -->
+	
     <div class="modal-bg" id="modalGravador">
         <div class="modal-gravador">
             <button class="close-btn" onclick="fecharGravador()">&times;</button>
@@ -387,14 +389,24 @@ margin-top: -5px;      /* Desce o botão na linha */
     </div>
 
     <!-- MODAL PASTA ATAS DE REUNIÃO -->
-    <div class="modal-bg" id="modalPastaReunioes">
-        <div class="modal-gravador">
-            <button class="close-btn" onclick="fecharPastasReunioes()">&times;</button>
-            <h3>Atas e Relatórios de Reuniões</h3>
-            <div id="listaArquivosReunioes" style="width:100%;max-height:300px;overflow:auto;padding-top:10px;"></div>
-            <div id="statusMsgReunioes" class="status-msg"></div>
-        </div>
+   <div class="modal-bg" id="modalPastaReunioes">
+  <div class="modal-gravador">
+    <button class="close-btn" onclick="fecharPastasReunioes()">&times;</button>
+    <h3>Atas e Relatórios de Reuniões</h3>
+    <div style="display:flex; gap:24px; width:100%;">
+      <div style="flex:1; border-right:2px solid #e0e4ee; padding-right:12px;">
+        <div style="font-weight:600; color:#3576f6; margin-bottom:4px;">Arquivos do Usuário</div>
+        <div id="listaArquivosReunioesUsuario" style="max-height:270px; overflow:auto;"></div>
+      </div>
+      <div style="flex:1; padding-left:12px;">
+        <div style="font-weight:600; color:#2254a6; margin-bottom:4px;">Arquivos Automatizados</div>
+        <div id="listaArquivosReunioesAutomatizados" style="max-height:270px; overflow:auto;"></div>
+      </div>
     </div>
+    <div id="statusMsgReunioes" class="status-msg"></div>
+  </div>
+</div>
+
 
     <!-- MODAL PASTA RELATÓRIOS DE PROJETOS -->
     <div class="modal-bg" id="modalPastaProjetos">
@@ -431,6 +443,11 @@ const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atasrelatórios de reuniões
 
 const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta de relatórios de projetos
+
+// Adicione as IDs das pastas de arquivos automatizados:
+const PASTA_ATAS_AUTOMATIZADAS_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
+const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
+	
 
 
 let accessToken = '';
