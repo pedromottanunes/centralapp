@@ -16,20 +16,26 @@
             flex-direction: column;
             align-items: center;
         }
+
+
+
         body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-            opacity: 0.3;
-            z-index: 0;
-            pointer-events: none;
-        }
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;              /* cobre toda a largura da viewport */
+    height: 100vh;             /* cobre toda a altura da viewport */
+   //background-image: url('https://drive.google.com/thumbnail?id=1T-NwTHSKFVz9z1FWsLP23UUih-W81srj');
+    background-size: contain;    /* faz a imagem cobrir tudo proporcionalmente */
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.1;              /* pode ajustar se quiser menos/more visível */
+    z-index: 0;
+    pointer-events: none;
+}
+
+
         .footer-logo {
             margin-top: 40px;
             margin-bottom: 20px;
@@ -42,6 +48,10 @@
             max-height: 30px;
             opacity: 0.2;
         }
+
+
+
+
         .btn-icon {
             width: 48px;
             height: 38px;
@@ -49,11 +59,14 @@
             object-fit: contain;
             flex-shrink: 0;
         }
+
+
+
         .header {
             width: 100%;
             background: #232b36;
             color: #fff;
-            padding: 24px 0 18px 0;
+            padding: 14px 0 18px 0;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -105,8 +118,8 @@
         }
         .central-btn {
             width: 240px; /* Exemplo: define largura fixa do botão */
-	        min-width: 0;
-	       max-width: 100%;
+	    min-width: 0;
+	    max-width: 100%;
 
             padding: 12px 0;
             background: #3576f6;
@@ -121,11 +134,10 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            gap: 5px;
+            gap: 10px;
             position: relative;
-            padding-left: 25px;
+            padding-left: 5px;
         }
-
         .central-btn:hover { background: #2254a6; transform: translateY(-2px) scale(1.03);}
         .central-btn[disabled]{opacity:0.6;cursor:not-allowed;}
         .btn-mini, .btn-mini-placeholder {
@@ -133,8 +145,7 @@
             height: 55px;
             margin-left: 12px;
             margin-right: 12px;
-	margin-top: -5px;      /* Desce o botão na linha */
-
+margin-top: -5px;      /* Desce o botão na linha */
             border: 2px solid #3576f6;
             background: #fff;
             color: #3576f6;
@@ -162,18 +173,18 @@
 
         
 
-         /* ===== NOVA COLUNA ===== */
-       //* *.col-resultado {
+        /* ===== NOVA COLUNA ===== */
+    //*    .col-resultado {
    //* display: flex;
-   // flex-direction: column;
-   // align-items: center;
-  //  margin-left: 18px;
-   // min-width: 70px; /* Ajuste se necessário */
-   //* padding: 16px 0 0 0;
-   // border-radius: 18px;
-   // background: #f7f9fc;
-  //  box-shadow: 0 2px 8px rgba(53,118,246,0.08);
-//}
+  //*  flex-direction: column;
+  //*  align-items: center;
+  //*  margin-left: 18px;
+  //*  min-width: 70px; /* Ajuste se necessário */
+  //*  padding: 16px 0 0 0;
+ //*   border-radius: 18px;
+ //*   background: #f7f9fc;
+  //*  box-shadow: 0 2px 8px rgba(53,118,246,0.08);
+//*}
 
 .resultado-top {
     display: flex;
@@ -198,47 +209,45 @@
 }
 
 
-
-
       
         #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
 
 
-	    
-     @media (max-width: 600px) {
-    .button-panel {
-        gap: 14px;
+
+
+        @media (max-width: 600px) {
+
+            .header-title { font-size: 1.4rem; }
+            .central-container { padding-top: 3px; max-width: 100%; }
+            .button-panel { gap: 22px; margin-top: 8px; }
+            .btn-row { width: 100%; max-width: none;}
+
+.central-btn {
+        padding: 20px 0;    /* <-- AQUI ALTERA A ALTURA DOS BOTÕES NO CELULAR */
     }
-    .btn-row {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;                /* espaçamento horizontal entre botões */
-        justify-content: flex-start;  /* NÃO use space-between no mobile */
+
+
+   /* --- Ícone acima da pastinha --- */
+    .icon-label-absolute {
+        top: -16px;          /* Ajuste vertical (suba/diminua à vontade) */
+        left: 50%;           /* Centraliza horizontalmente no botão */
+        width: 22px;         /* Tamanho do ícone no mobile */
+        height: 22px;
+        transform: translateX(-50%);
     }
-    .central-btn {
-        width: calc(100% - 50px);    /* Ocupe o espaço menos o tamanho do círculo */
-        min-width: 0;
-        max-width: 100%;
-        flex-shrink: 1;
-        flex-grow: 1;
-        padding: 10px 0;
-    }
-    .btn-mini,
-    .btn-mini-placeholder {
-        width: 42px;
-        height: 42px;
-        font-size: 1.2rem;
-        margin: 0;
-        flex-shrink: 0;    /* Impede de achatar o círculo */
-        flex-grow: 0;
-        box-sizing: border-box;
+
+    /* --- Botão pastinha --- */
+    .btn-mini {
+        margin-left: 8px;    /* Ajuste horizontal: afasta/aproxima do botão principal */
+        margin-top: 4px;     /* Ajuste vertical: sobe/desce */
+        width: 36px;         /* Tamanho do círculo no mobile */
+        height: 36px;
+        font-size: 1.1rem;
     }
 }
 
 
-	    
+        
         .modal-bg {display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0,0,0,0.45); z-index: 99; justify-content: center; align-items: center;}
         .modal-bg.open { display: flex;}
@@ -253,8 +262,7 @@
         .status-msg {font-size: 1rem; color: #2254a6; margin-top: 5px;}
 
 
-
-        .icon-wrapper {
+.icon-wrapper {
     position: relative;
     display: inline-block;
     /* Pode adicionar margem lateral se precisar afastar do resto */
@@ -273,9 +281,15 @@
 
 
 
+.icon-ajuste {
+    margin-right: 1px;    /* Afasta o ícone para a direita, aumentando a distância do texto */
+  
+}
 
 
-        
+
+
+
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3576f6">
@@ -290,21 +304,31 @@
             Acesse as principais funções habilitadas
         </div>
     </div>
+
+
     <div class="central-container">
       <div class="button-panel">
+
         <!-- Linha 1: Gravar Reunião + pasta -->
+
         <div class="btn-row">
           <button class="central-btn" onclick="abrirGravador()">
             <img src="https://drive.google.com/thumbnail?id=18w8uXoehDkLb59OjpriJfYBd-unkZXp_" class="btn-icon" alt="Ícone"> Gravar Reunião
           </button>
 
-            
+
 <div class="icon-wrapper" style="position: relative; display: inline-block;">
-  <img src="https://drive.google.com/thumbnail?id=1ptE3YOWy4ZhkbeBK89wz4C1bTG0rfdgi" class="icon-label-absolute" alt="Ícone Resultados" title="Abaixo estão as respectivas pastas que contém os resultados já automatizados" />
+ 
+ <img src="https://drive.google.com/thumbnail?id=1ptE3YOWy4ZhkbeBK89wz4C1bTG0rfdgi" class="icon-label-absolute" alt="Ícone Resultados" title="Abaixo estão as pastas que contém os resultados já automatizados" />
+
+
   <button class="btn-mini" onclick="abrirPastasReunioes()" title="Ver atas/relatórios de reuniões">📂</button>
 </div>
 
-            
+
+
+
+
         </div>
         <!-- Linha 2: Ler Projetos + pasta -->
         <div class="btn-row">
@@ -320,7 +344,7 @@
           </button>
           <span class="btn-mini-placeholder"></span>
         </div>
-        <!-- Linha 4: Login com google (placeholder à direita) -->
+        <!-- Linha 4: Login (placeholder à direita) -->
         <div class="btn-row">
           <button class="central-btn" id="btnGoogleAuth" onclick="googleSignIn()">
             <img src="https://drive.google.com/thumbnail?id=1QcnOm_G-NjTtV8SLHd3rKwrHk2yWE3F1" class="btn-icon" alt="Ícone"> Login
@@ -724,7 +748,7 @@ async function listarArquivosReunioes() {
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
     try {
         const resp = await fetch(
-            https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc,
+            `https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
             { headers: { 'Authorization': 'Bearer ' + accessToken } }
         );
         const data = await resp.json();
@@ -733,10 +757,10 @@ async function listarArquivosReunioes() {
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
                 const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-                html += <li style="margin-bottom:12px;">
+                html += `<li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>;
+                </li>`;
             });
             html += '</ul>';
             document.getElementById('listaArquivosReunioes').innerHTML = html;
@@ -767,7 +791,7 @@ async function listarArquivosProjetos() {
     document.getElementById('statusMsgProjetos').textContent = 'Carregando arquivos...';
     try {
         const resp = await fetch(
-            https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc,
+            `https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
             { headers: { 'Authorization': 'Bearer ' + accessToken } }
         );
         const data = await resp.json();
@@ -776,10 +800,10 @@ async function listarArquivosProjetos() {
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
                 const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-                html += <li style="margin-bottom:12px;">
+                html += `<li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>;
+                </li>`;
             });
             html += '</ul>';
             document.getElementById('listaArquivosProjetos').innerHTML = html;
