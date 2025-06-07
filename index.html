@@ -128,27 +128,25 @@
 
         .central-btn:hover { background: #2254a6; transform: translateY(-2px) scale(1.03);}
         .central-btn[disabled]{opacity:0.6;cursor:not-allowed;}
-	    
-.btn-mini, .btn-mini-placeholder {
-    width: 55px;
-    height: 55px;
-    margin-left: 12px;
-    margin-right: 0;
-    margin-top: 0;
-    border: 2px solid #3576f6;
-    background: #fff;
-    color: #3576f6;
-    border-radius: 50%;
-    font-size: 1.7rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.18s, border 0.18s;
-    box-shadow: 0 2px 8px 0 rgba(53,118,246,0.10);
-}
+        .btn-mini, .btn-mini-placeholder {
+            width: 55px;
+            height: 55px;
+            margin-left: 12px;
+            margin-right: 12px;
+	margin-top: -5px;      /* Desce o botão na linha */
 
-    
+            border: 2px solid #3576f6;
+            background: #fff;
+            color: #3576f6;
+            border-radius: 50%;
+            font-size: 1.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.18s, border 0.18s;
+            box-shadow: 0 2px 8px 0 rgba(53,118,246,0.10);
+        }
         .btn-mini:hover {
             background: #e9f3fd;
             border-color: #2254a6;
@@ -199,51 +197,49 @@
     margin-bottom: 8px;
 }
 
-#userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
 
 
-	    
-@media (max-width: 600px) {
 
-    .header-title { font-size: 1.2rem; }
-    .central-container { padding-top: 75px; max-width: 95%; }
-    .button-panel { gap: 12px; margin-top: 8px; }
-    .btn-row { width: 100%; max-width: none; }
 
-    .central-btn {
-        width: 100%;      /* Faz o botão ocupar toda a linha no mobile */
-        padding: 10px 0;  /* Altura dos botões no celular */
-        min-width: 0;
-        max-width: 100%;
+
+        
+        #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
+        @media (max-width: 600px) {
+            .header-title { font-size: 1.2rem; }
+            .central-container { padding-top: 75px; max-width: 95%; }
+            .button-panel { gap: 12px; margin-top: 8px; }
+            .btn-row { width: 100%; max-width: none;}
+
+.central-btn {
+        padding: 10px 0;    /* <-- AQUI ALTERA A ALTURA DOS BOTÕES NO CELULAR */
     }
 
-    .btn-mini,
-    .btn-mini-placeholder {
-        width: 42px;         /* Tamanho fixo menor para mobile */
-        height: 42px;
-        margin-left: 8px;
-        margin-right: 0;     /* Remove margem para não empurrar o botão fora da tela */
-        margin-top: 0;
-        font-size: 1.2rem;   /* Tamanho do ícone */
-        box-sizing: border-box;
-    }
 
-    /* Ícone acima da pastinha */
+
+  /* --- Ícone acima da pastinha --- */
     .icon-label-absolute {
-        top: -22px;
-        left: 50%;
-        width: 24px;
-        height: 24px;
+        top: -18px;          /* Ajuste vertical (suba/diminua à vontade) */
+        left: 50%;           /* Centraliza horizontalmente no botão */
+        width: 22px;         /* Tamanho do ícone no mobile */
+        height: 22px;
         transform: translateX(-50%);
     }
 
-    .logo {
-        width: 40px;
-        height: 40px;
+    /* --- Botão pastinha --- */
+    .btn-mini {
+        margin-left: 12px;    /* Ajuste horizontal: afasta/aproxima do botão principal */
+        margin-top: -3px;     /* Ajuste vertical: sobe/desce */
+        width: 55px;         /* Tamanho do círculo no mobile */
+        height: 55px;
+        font-size: 1.1rem;
     }
-}
-	    
-    
+		
+		.logo {
+        width: 40px;   /* ou o valor que desejar */
+        height: 40px;  /* mantenha a proporção */
+    }
+		
+        }
 
 
 	    
@@ -732,7 +728,7 @@ async function listarArquivosReunioes() {
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
     try {
         const resp = await fetch(
-            `https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
+            https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc,
             { headers: { 'Authorization': 'Bearer ' + accessToken } }
         );
         const data = await resp.json();
@@ -741,10 +737,10 @@ async function listarArquivosReunioes() {
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
                 const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-                html += `<li style="margin-bottom:12px;">
+                html += <li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>`;
+                </li>;
             });
             html += '</ul>';
             document.getElementById('listaArquivosReunioes').innerHTML = html;
@@ -775,7 +771,7 @@ async function listarArquivosProjetos() {
     document.getElementById('statusMsgProjetos').textContent = 'Carregando arquivos...';
     try {
         const resp = await fetch(
-            `https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
+            https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc,
             { headers: { 'Authorization': 'Bearer ' + accessToken } }
         );
         const data = await resp.json();
@@ -784,10 +780,10 @@ async function listarArquivosProjetos() {
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
                 const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-                html += `<li style="margin-bottom:12px;">
+                html += <li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>`;
+                </li>;
             });
             html += '</ul>';
             document.getElementById('listaArquivosProjetos').innerHTML = html;
