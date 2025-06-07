@@ -422,7 +422,8 @@ const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleuser
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atas/relatórios de reuniões
+const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atasrelatórios de reuniões
+
 const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta de relatórios de projetos
 
 
@@ -747,16 +748,24 @@ async function listarArquivosReunioes() {
     }
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
     try {
-        const resp = await fetch(
-            `https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
-            { headers: { 'Authorization': 'Bearer ' + accessToken } }
-        );
+        const query = `'${PASTA_ATAS_ID}'+in+parents+and+(
+            mimeType='application/pdf' 
+            or mimeType='text/html'
+            or mimeType='audio/wav'
+            or mimeType='audio/webm'
+        )`;
+        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`;
+        const resp = await fetch(url, {
+            headers: { 'Authorization': 'Bearer ' + accessToken }
+        });
         const data = await resp.json();
         if (data.files && data.files.length > 0) {
             document.getElementById('statusMsgReunioes').textContent = '';
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
-                const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
+                let icon = "📄";
+                if (arq.mimeType.startsWith("audio/")) icon = "🎵";
+                else if (arq.mimeType === "text/html") icon = "🌐";
                 html += `<li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
