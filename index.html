@@ -770,41 +770,58 @@ async function listarArquivosReunioes() {
         return;
     }
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
-    try {
-const query = `'${PASTA_ATAS_ID}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType='audio/wav' or mimeType='audio/webm')`;
-const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
 
-        const resp = await fetch(url, {
-            headers: { 'Authorization': 'Bearer ' + accessToken }
-        });
-
+    // Helper interna para buscar arquivos de cada pasta
+    async function buscarArquivos(pastaId) {
+        const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType='audio/wav' or mimeType='audio/webm')`;
+        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
+        const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
         const data = await resp.json();
+        return data.files || [];
+    }
 
-        // <-- Só agora faça o console.log
-        console.log("Arquivos retornados:", data.files);
+    try {
+        // Busca nas duas pastas
+        const [arquivosUsuario, arquivosAutomatizados] = await Promise.all([
+            buscarArquivos(PASTA_ATAS_ID),
+            buscarArquivos(PASTA_ATAS_AUTOMATIZADAS_ID)
+        ]);
 
-        if (data.files && data.files.length > 0) {
-            document.getElementById('statusMsgReunioes').textContent = '';
-            let html = '<ul style="list-style:none;padding:0;">';
-            data.files.forEach(arq => {
-                let icon = "📄";
-                if (arq.mimeType.startsWith("audio/")) icon = "🎵";
-                else if (arq.mimeType === "text/html") icon = "🌐";
-                html += `<li style="margin-bottom:12px;">
-                    ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-                    <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>`;
-            });
-            html += '</ul>';
-            document.getElementById('listaArquivosReunioes').innerHTML = html;
-        } else {
-            document.getElementById('listaArquivosReunioes').innerHTML = "";
-            document.getElementById('statusMsgReunioes').textContent = 'Nenhum relatório encontrado.';
-        }
+        // Lista de arquivos do usuário
+        let htmlUsuario = '<ul style="list-style:none;padding:0;">';
+        arquivosUsuario.forEach(arq => {
+            let icon = "📄";
+            if (arq.mimeType.startsWith("audio/")) icon = "🎵";
+            else if (arq.mimeType === "text/html") icon = "🌐";
+            htmlUsuario += `<li style="margin-bottom:12px;">
+                ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+                <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+            </li>`;
+        });
+        htmlUsuario += '</ul>';
+
+        // Lista de arquivos automatizados
+        let htmlAutomatizados = '<ul style="list-style:none;padding:0;">';
+        arquivosAutomatizados.forEach(arq => {
+            let icon = "🧠"; // Ícone diferente para automatizados
+            if (arq.mimeType.startsWith("audio/")) icon = "🎵";
+            else if (arq.mimeType === "application/pdf") icon = "📄";
+            else if (arq.mimeType === "text/html") icon = "🌐";
+            htmlAutomatizados += `<li style="margin-bottom:12px;">
+                ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+                <span style="color:#7abfa6; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+            </li>`;
+        });
+        htmlAutomatizados += '</ul>';
+
+        document.getElementById('listaArquivosReunioesUsuario').innerHTML = htmlUsuario;
+        document.getElementById('listaArquivosReunioesAutomatizados').innerHTML = htmlAutomatizados;
+        document.getElementById('statusMsgReunioes').textContent = '';
     } catch (e) {
         document.getElementById('statusMsgReunioes').textContent = 'Erro ao buscar arquivos.';
     }
 }
+
 
 
 // =============== Listar Arquivos - Relatórios de Projetos ===============
