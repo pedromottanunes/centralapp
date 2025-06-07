@@ -748,6 +748,8 @@ function fecharPastasReunioes() {
     document.getElementById('statusMsgReunioes').textContent = "";
 }
 async function listarArquivosReunioes() {
+	console.log(data.files);
+
     if (!accessToken) {
         document.getElementById('statusMsgReunioes').textContent = 'Conecte com o Google Drive.';
         return;
