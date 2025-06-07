@@ -821,8 +821,10 @@ const query = `'${pastaId}' in parents`;
         arquivosAutomatizados.forEach(arq => {
             let icon = "🧠"; // Ícone diferente para automatizados
             if (arq.mimeType.startsWith("audio/")) icon = "🎵";
-            else if (arq.mimeType === "application/pdf") icon = "📄";
-            else if (arq.mimeType === "text/html") icon = "🌐";
+else if (arq.mimeType === "application/pdf") icon = "📄";
+else if (arq.mimeType === "text/html") icon = "🌐";
+else if (arq.mimeType === "image/png") icon = "🖼️";
+
             htmlAutomatizados += `<li style="margin-bottom:12px;">
                 ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                 <span style="color:#7abfa6; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
