@@ -43,9 +43,9 @@
             opacity: 0.7;
         }
         .btn-icon {
-            width: 28px;
-            height: 28px;
-            margin-right: 10px;
+            width: 48px;
+            height: 38px;
+            margin-right: 5px;
             object-fit: contain;
             flex-shrink: 0;
         }
@@ -82,7 +82,7 @@
         .central-container {
             flex: 1;
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -98,14 +98,17 @@
         }
         .btn-row {
             display: flex;
-            width: 80%;
+            width: 90%;
             max-width: 400px;
             align-items: center;
             justify-content: space-between;
         }
         .central-btn {
-            flex: 1 1 auto;
-            padding: 13px 0;
+            width: 240px; /* Exemplo: define largura fixa do botão */
+	        min-width: 0;
+	       max-width: 100%;
+
+            padding: 12px 0;
             background: #3576f6;
             color: #fff;
             font-size: 1rem;
@@ -199,8 +202,8 @@
         
         #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
         @media (max-width: 600px) {
-            .header-title { font-size: 1.4rem; }
-            .central-container { padding-top: 50px; max-width: 100%; }
+            .header-title { font-size: 1.2rem; }
+            .central-container { padding-top: 55px; max-width: 95%; }
             .button-panel { gap: 12px; margin-top: 8px; }
             .btn-row { width: 100%; max-width: none;}
         }
@@ -285,10 +288,10 @@
           </button>
           <span class="btn-mini-placeholder"></span>
         </div>
-        <!-- Linha 4: Login (placeholder à direita) -->
+        <!-- Linha 4: Login com google (placeholder à direita) -->
         <div class="btn-row">
           <button class="central-btn" id="btnGoogleAuth" onclick="googleSignIn()">
-            <img src="https://drive.google.com/thumbnail?id=1QcnOm_G-NjTtV8SLHd3rKwrHk2yWE3F1" class="btn-icon" alt="Ícone"> Login com Google
+            <img src="https://drive.google.com/thumbnail?id=1QcnOm_G-NjTtV8SLHd3rKwrHk2yWE3F1" class="btn-icon" alt="Ícone"> Login
           </button>
           <span class="btn-mini-placeholder"></span>
         </div>
