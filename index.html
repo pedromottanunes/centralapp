@@ -782,7 +782,7 @@ async function listarArquivosReunioes() {
 
     // Helper interna para buscar arquivos de cada pasta
     async function buscarArquivos(pastaId) {
-    const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='image/png' or mimeType='text/html')`;
+const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType contains 'audio/')`;
     const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
     const data = await resp.json();
