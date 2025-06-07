@@ -755,7 +755,8 @@ async function listarArquivosReunioes() {
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
     try {
       const query = `'${PASTA_ATAS_ID}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType='audio/wav' or mimeType='audio/webm')`;
-const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
+const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
+
 
         const resp = await fetch(url, {
             headers: { 'Authorization': 'Bearer ' + accessToken }
