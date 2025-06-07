@@ -216,6 +216,31 @@
         .gravador-btns button:disabled { background: #9bbdfa; cursor: not-allowed;}
         .audio-player {width: 100%; margin-top: 10px;}
         .status-msg {font-size: 1rem; color: #2254a6; margin-top: 5px;}
+
+
+
+        .icon-wrapper {
+    position: relative;
+    display: inline-block;
+    /* Pode adicionar margem lateral se precisar afastar do resto */
+}
+
+.icon-label-absolute {
+    position: absolute;
+    left: 50%;             /* centraliza horizontalmente */
+    top: -38px;            /* ajusta a altura acima do botão, pode ser -30px, -24px, etc */
+    transform: translateX(-50%);
+    font-size: 1rem;
+    color: #3576f6;
+    font-weight: 600;
+    pointer-events: none;  /* para não atrapalhar cliques no botão */
+    white-space: nowrap;   /* não quebrar linha */
+}
+
+
+
+
+        
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3576f6">
@@ -237,7 +262,14 @@
           <button class="central-btn" onclick="abrirGravador()">
             <img src="https://drive.google.com/thumbnail?id=18w8uXoehDkLb59OjpriJfYBd-unkZXp_" class="btn-icon" alt="Ícone"> Gravar Reunião
           </button>
-          <button class="btn-mini" onclick="abrirPastasReunioes()" title="Ver atas/relatórios de reuniões">📂</button>
+
+            
+        <div class="icon-wrapper" style="position: relative; display: inline-block;">
+  <span class="icon-label-absolute">Resultados</span>
+  <button class="btn-mini" onclick="abrirPastasReunioes()" title="Ver atas/relatórios de reuniões">📂</button>
+</div>
+
+            
         </div>
         <!-- Linha 2: Ler Projetos + pasta -->
         <div class="btn-row">
