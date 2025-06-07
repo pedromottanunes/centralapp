@@ -39,8 +39,8 @@
             z-index: 1;
         }
         .footer-logo img {
-            max-height: 50px;
-            opacity: 0.7;
+            max-height: 30px;
+            opacity: 0.2;
         }
         .btn-icon {
             width: 48px;
@@ -240,15 +240,15 @@
 
 .icon-label-absolute {
     position: absolute;
-    left: 50%;             /* centraliza horizontalmente */
-    top: -38px;            /* ajusta a altura acima do botão, pode ser -30px, -24px, etc */
+    left: 60%;
+    top: -68px;           /* Ajuste a distância acima do botão */
     transform: translateX(-50%);
-    font-size: 1rem;
-    color: #3576f6;
-    font-weight: 600;
-    pointer-events: none;  /* para não atrapalhar cliques no botão */
-    white-space: nowrap;   /* não quebrar linha */
+    width: 52px;          /* Defina o tamanho do ícone aqui */
+    height: 52px;
+    object-fit: contain;
+    /* restante já existente */
 }
+
 
 
 
@@ -277,8 +277,8 @@
           </button>
 
             
-        <div class="icon-wrapper" style="position: relative; display: inline-block;">
-  <span class="icon-label-absolute">Resultados</span>
+<div class="icon-wrapper" style="position: relative; display: inline-block;">
+  <img src="https://drive.google.com/thumbnail?id=1ptE3YOWy4ZhkbeBK89wz4C1bTG0rfdgi" class="icon-label-absolute" alt="Ícone Resultados" />
   <button class="btn-mini" onclick="abrirPastasReunioes()" title="Ver atas/relatórios de reuniões">📂</button>
 </div>
 
