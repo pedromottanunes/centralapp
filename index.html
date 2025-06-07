@@ -783,18 +783,15 @@ async function listarArquivosReunioes() {
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
 
     // Helper interna para buscar arquivos de cada pasta
-    async function buscarArquivos(pastaId) {
 
-const query = `'${pastaId}' in parents`;
-   
-//*const query = `'${pastaId}' in parents and (mimeType='application/pdf' or mimeType='text/html' or mimeType contains 'audio/')`;
-
-	    
-    const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
+   async function buscarArquivos(pastaId) {
+    const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime,owners,permissions)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
     const data = await resp.json();
+    console.log('ARQUIVOS LISTADOS:', data.files); // Veja no console TODOS os arquivos
     return data.files || [];
 }
+
 
     try {
         // Busca nas duas pastas
