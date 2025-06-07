@@ -748,23 +748,24 @@ function fecharPastasReunioes() {
     document.getElementById('statusMsgReunioes').textContent = "";
 }
 async function listarArquivosReunioes() {
-	console.log(data.files);
-
     if (!accessToken) {
         document.getElementById('statusMsgReunioes').textContent = 'Conecte com o Google Drive.';
         return;
     }
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
     try {
-    const query = `'${PASTA_ATAS_ID}' in parents`;
-const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
-
-
+        const query = `'${PASTA_ATAS_ID}' in parents`;
+        const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc`;
 
         const resp = await fetch(url, {
             headers: { 'Authorization': 'Bearer ' + accessToken }
         });
+
         const data = await resp.json();
+
+        // <-- Só agora faça o console.log
+        console.log("Arquivos retornados:", data.files);
+
         if (data.files && data.files.length > 0) {
             document.getElementById('statusMsgReunioes').textContent = '';
             let html = '<ul style="list-style:none;padding:0;">';
@@ -787,6 +788,7 @@ const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(qu
         document.getElementById('statusMsgReunioes').textContent = 'Erro ao buscar arquivos.';
     }
 }
+
 
 // =============== Listar Arquivos - Relatórios de Projetos ===============
 function abrirPastasProjetos() {
