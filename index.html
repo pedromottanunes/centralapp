@@ -107,7 +107,6 @@
             width: 240px; /* Exemplo: define largura fixa do botão */
 	        min-width: 0;
 	       max-width: 100%;
-
             padding: 12px 0;
             background: #3576f6;
             color: #fff;
@@ -125,7 +124,6 @@
             position: relative;
             padding-left: 25px;
         }
-
         .central-btn:hover { background: #2254a6; transform: translateY(-2px) scale(1.03);}
         .central-btn[disabled]{opacity:0.6;cursor:not-allowed;}
         .btn-mini, .btn-mini-placeholder {
@@ -133,8 +131,7 @@
             height: 55px;
             margin-left: 12px;
             margin-right: 12px;
-	margin-top: -5px;      /* Desce o botão na linha */
-
+            margin-top: -5px;      /* Desce o botão na linha */
             border: 2px solid #3576f6;
             background: #fff;
             color: #3576f6;
@@ -158,124 +155,54 @@
             background: transparent;
             box-shadow: none;
         }
-
-
-        
-
-         /* ===== NOVA COLUNA ===== */
-       //* *.col-resultado {
-   //* display: flex;
-   // flex-direction: column;
-   // align-items: center;
-  //  margin-left: 18px;
-   // min-width: 70px; /* Ajuste se necessário */
-   //* padding: 16px 0 0 0;
-   // border-radius: 18px;
-   // background: #f7f9fc;
-  //  box-shadow: 0 2px 8px rgba(53,118,246,0.08);
-//}
-
-.resultado-top {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.resultado-title {
-    font-size: 1.08rem;
-    font-weight: 600;
-    color: #3576f6;
-    margin-bottom: 4px;
-    letter-spacing: 0.4px;
-}
-
-.resultado-img {
-    width: 32px;   /* ajuste o tamanho conforme a sua imagem */
-    height: 32px;
-    object-fit: contain;
-    margin-bottom: 8px;
-}
-
-
-
-
-      
         #userEmail {font-size: 0.98rem; margin-bottom: 8px; color: #2c62a6;}
 
-
-	    
-     @media (max-width: 600px) {
-    .button-panel {
-        gap: 14px;
-    }
-    .btn-row {
-        width: 100%;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 8px;                /* espaçamento horizontal entre botões */
-        justify-content: flex-start;  /* NÃO use space-between no mobile */
-    }
-    .central-btn {
-        width: calc(100% - 50px);    /* Ocupe o espaço menos o tamanho do círculo */
-        min-width: 0;
-        max-width: 100%;
-        flex-shrink: 1;
-        flex-grow: 1;
-        padding: 10px 0;
-    }
-    .btn-mini,
-    .btn-mini-placeholder {
-        width: 42px;
-        height: 42px;
-        font-size: 1.2rem;
-        margin: 0;
-        flex-shrink: 0;    /* Impede de achatar o círculo */
-        flex-grow: 0;
-        box-sizing: border-box;
-    }
-}
-
-
-	    
-        .modal-bg {display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.45); z-index: 99; justify-content: center; align-items: center;}
-        .modal-bg.open { display: flex;}
-        .modal-gravador {background: #fff; padding: 28px 24px 24px 24px; border-radius: 20px; box-shadow: 0 2px 24px 0 rgba(40,70,140,0.15);
-            min-width: 300px; min-height: 210px; display: flex; flex-direction: column; align-items: center; gap: 16px; position: relative; max-width: 95vw;}
-        .close-btn { position: absolute; right: 14px; top: 14px; background: transparent; border: none; font-size: 1.5rem; color: #888; cursor: pointer;}
-        .gravador-btns {display: flex; gap: 16px; margin-top: 6px;}
-        .gravador-btns button { background: #3576f6; color: #fff; border: none; border-radius: 12px; padding: 12px 18px;
-            font-size: 1.2rem; cursor: pointer; box-shadow: 0 2px 8px 0 rgba(53,118,246,0.10); transition: background 0.18s;}
-        .gravador-btns button:disabled { background: #9bbdfa; cursor: not-allowed;}
-        .audio-player {width: 100%; margin-top: 10px;}
-        .status-msg {font-size: 1rem; color: #2254a6; margin-top: 5px;}
-
-
-
+        /* MOBILE RESPONSIVE */
+        @media (max-width: 600px) {
+            .button-panel { gap: 14px; }
+            .btn-row {
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+                justify-content: flex-start;
+            }
+            .central-btn {
+                width: calc(100% - 50px);
+                min-width: 0;
+                max-width: 100%;
+                flex-shrink: 1;
+                flex-grow: 1;
+                padding: 10px 0;
+            }
+            .btn-mini, .btn-mini-placeholder {
+                width: 42px;
+                height: 42px;
+                font-size: 1.2rem;
+                margin: 0;
+                flex-shrink: 0;
+                flex-grow: 0;
+                box-sizing: border-box;
+            }
+            .logo {
+                width: 40px;
+                height: 40px;
+            }
+        }
         .icon-wrapper {
-    position: relative;
-    display: inline-block;
-    /* Pode adicionar margem lateral se precisar afastar do resto */
-}
-
-.icon-label-absolute {
-    position: absolute;
-    left: 50%;
-    top: -68px;           /* Ajuste a distância acima do botão */
-    transform: translateX(-50%);
-    width: 52px;          /* Defina o tamanho do ícone aqui */
-    height: 52px;
-    object-fit: contain;
-    /* restante já existente */
-}
-
-
-
-
-
-        
+            position: relative;
+            display: inline-block;
+        }
+        .icon-label-absolute {
+            position: absolute;
+            left: 50%;
+            top: -68px;
+            transform: translateX(-50%);
+            width: 52px;
+            height: 52px;
+            object-fit: contain;
+        }
     </style>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#3576f6">
@@ -297,14 +224,10 @@
           <button class="central-btn" onclick="abrirGravador()">
             <img src="https://drive.google.com/thumbnail?id=18w8uXoehDkLb59OjpriJfYBd-unkZXp_" class="btn-icon" alt="Ícone"> Gravar Reunião
           </button>
-
-            
-<div class="icon-wrapper" style="position: relative; display: inline-block;">
-  <img src="https://drive.google.com/thumbnail?id=1ptE3YOWy4ZhkbeBK89wz4C1bTG0rfdgi" class="icon-label-absolute" alt="Ícone Resultados" title="Abaixo estão as respectivas pastas que contém os resultados já automatizados" />
-  <button class="btn-mini" onclick="abrirPastasReunioes()" title="Ver atas/relatórios de reuniões">📂</button>
-</div>
-
-            
+          <div class="icon-wrapper">
+            <img src="https://drive.google.com/thumbnail?id=1ptE3YOWy4ZhkbeBK89wz4C1bTG0rfdgi" class="icon-label-absolute" alt="Ícone Resultados" title="Abaixo estão as respectivas pastas que contém os resultados já automatizados" />
+            <button class="btn-mini" onclick="abrirPastasReunioes()" title="Ver atas/relatórios de reuniões">📂</button>
+          </div>
         </div>
         <!-- Linha 2: Ler Projetos + pasta -->
         <div class="btn-row">
@@ -332,15 +255,11 @@
           <span class="btn-mini-placeholder"></span>
         </div>
       </div>
-
-
-
-        
       <div id="userEmail"></div>
       <div id="authStatus" style="font-size:0.95rem;color:#2254a6;margin-top:8px;"></div>
     </div>
 
-    <!-- MODAL GRAVADOR DE ÁUDIO -->
+    <!-- MODAIS -->
     <div class="modal-bg" id="modalGravador">
         <div class="modal-gravador">
             <button class="close-btn" onclick="fecharGravador()">&times;</button>
@@ -355,8 +274,6 @@
             <div id="statusMsg" class="status-msg"></div>
         </div>
     </div>
-
-    <!-- MODAL PASTA ATAS DE REUNIÃO -->
     <div class="modal-bg" id="modalPastaReunioes">
         <div class="modal-gravador">
             <button class="close-btn" onclick="fecharPastasReunioes()">&times;</button>
@@ -365,8 +282,6 @@
             <div id="statusMsgReunioes" class="status-msg"></div>
         </div>
     </div>
-
-    <!-- MODAL PASTA RELATÓRIOS DE PROJETOS -->
     <div class="modal-bg" id="modalPastaProjetos">
         <div class="modal-gravador">
             <button class="close-btn" onclick="fecharPastasProjetos()">&times;</button>
@@ -375,8 +290,6 @@
             <div id="statusMsgProjetos" class="status-msg"></div>
         </div>
     </div>
-
-    <!-- MODAL LER PROJETOS (PDF) -->
     <div class="modal-bg" id="modalLerProjeto">
         <div class="modal-gravador">
             <button class="close-btn" onclick="fecharLerProjeto()">&times;</button>
@@ -387,7 +300,6 @@
             <div id="statusMsgPdf" class="status-msg"></div>
         </div>
     </div>
-
     <div class="footer-logo">
         <img src="https://drive.google.com/thumbnail?id=1W-wgNX7l3z3lqfIvhyqigqIIvH1E9M0L" alt="Logo Rodapé">
     </div>
@@ -398,9 +310,8 @@ const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleuser
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atas/relatórios de reuniões
-const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta de relatórios de projetos
-
+const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
+const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK';
 
 let accessToken = '';
 let tokenClient = null;
@@ -417,6 +328,47 @@ window.onload = function() {
     });
 };
 
+// Botões principais
+function abrirGravador() {
+    document.getElementById('modalGravador').classList.add('open');
+    resetarGravador();
+}
+function abrirLerProjeto() {
+    document.getElementById('modalLerProjeto').classList.add('open');
+    resetarLerProjeto();
+}
+function orcamento() {
+    alert('Funcionalidade de orçamento em desenvolvimento.');
+}
+function abrirPastasReunioes() {
+    document.getElementById('modalPastaReunioes').classList.add('open');
+    listarArquivosReunioes();
+}
+function abrirPastasProjetos() {
+    document.getElementById('modalPastaProjetos').classList.add('open');
+    listarArquivosProjetos();
+}
+function fecharGravador() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+    document.getElementById('modalGravador').classList.remove('open');
+    resetarGravador();
+}
+function fecharLerProjeto() {
+    document.getElementById('modalLerProjeto').classList.remove('open');
+    resetarLerProjeto();
+}
+function fecharPastasReunioes() {
+    document.getElementById('modalPastaReunioes').classList.remove('open');
+    document.getElementById('listaArquivosReunioes').innerHTML = "";
+    document.getElementById('statusMsgReunioes').textContent = "";
+}
+function fecharPastasProjetos() {
+    document.getElementById('modalPastaProjetos').classList.remove('open');
+    document.getElementById('listaArquivosProjetos').innerHTML = "";
+    document.getElementById('statusMsgProjetos').textContent = "";
+}
 function googleSignIn() {
     tokenClient.requestAccessToken();
 }
@@ -460,17 +412,6 @@ const btnUpload = document.getElementById('btnUpload');
 const statusMsg = document.getElementById('statusMsg');
 let audioBlobGlobal = null;
 
-function abrirGravador() {
-    modal.classList.add('open');
-    resetarGravador();
-}
-function fecharGravador() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-    }
-    modal.classList.remove('open');
-    resetarGravador();
-}
 function iniciarGravacao() {
     if (!navigator.mediaDevices || !window.MediaRecorder) {
         alert("Seu navegador não suporta gravação de áudio!");
@@ -639,14 +580,6 @@ const btnUploadPdf = document.getElementById('btnUploadPdf');
 const statusMsgPdf = document.getElementById('statusMsgPdf');
 let pdfBlobGlobal = null;
 
-function abrirLerProjeto() {
-    modalLerProjeto.classList.add('open');
-    resetarLerProjeto();
-}
-function fecharLerProjeto() {
-    modalLerProjeto.classList.remove('open');
-    resetarLerProjeto();
-}
 function resetarLerProjeto() {
     inputPdf.value = "";
     pdfFileName.textContent = "";
@@ -654,8 +587,6 @@ function resetarLerProjeto() {
     statusMsgPdf.textContent = "";
     pdfBlobGlobal = null;
 }
-
-// Quando escolher o arquivo PDF, mostrar nome e liberar botão upload
 inputPdf.onchange = function() {
     const file = inputPdf.files[0];
     if (file && file.type === "application/pdf") {
@@ -668,8 +599,6 @@ inputPdf.onchange = function() {
         pdfBlobGlobal = null;
     }
 };
-
-// Função upload PDF
 async function salvarPdfNoDrive() {
     if (!accessToken) {
         alert("Você precisa conectar com o Google Drive antes de salvar.");
@@ -707,15 +636,6 @@ async function salvarPdfNoDrive() {
 }
 
 // =============== Listar Arquivos - Atas/Relatórios de Reunião ===============
-function abrirPastasReunioes() {
-    document.getElementById('modalPastaReunioes').classList.add('open');
-    listarArquivosReunioes();
-}
-function fecharPastasReunioes() {
-    document.getElementById('modalPastaReunioes').classList.remove('open');
-    document.getElementById('listaArquivosReunioes').innerHTML = "";
-    document.getElementById('statusMsgReunioes').textContent = "";
-}
 async function listarArquivosReunioes() {
     if (!accessToken) {
         document.getElementById('statusMsgReunioes').textContent = 'Conecte com o Google Drive.';
@@ -724,7 +644,7 @@ async function listarArquivosReunioes() {
     document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
     try {
         const resp = await fetch(
-            https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc,
+            `https://www.googleapis.com/drive/v3/files?q='${PASTA_ATAS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
             { headers: { 'Authorization': 'Bearer ' + accessToken } }
         );
         const data = await resp.json();
@@ -733,10 +653,10 @@ async function listarArquivosReunioes() {
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
                 const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-                html += <li style="margin-bottom:12px;">
+                html += `<li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>;
+                </li>`;
             });
             html += '</ul>';
             document.getElementById('listaArquivosReunioes').innerHTML = html;
@@ -750,15 +670,6 @@ async function listarArquivosReunioes() {
 }
 
 // =============== Listar Arquivos - Relatórios de Projetos ===============
-function abrirPastasProjetos() {
-    document.getElementById('modalPastaProjetos').classList.add('open');
-    listarArquivosProjetos();
-}
-function fecharPastasProjetos() {
-    document.getElementById('modalPastaProjetos').classList.remove('open');
-    document.getElementById('listaArquivosProjetos').innerHTML = "";
-    document.getElementById('statusMsgProjetos').textContent = "";
-}
 async function listarArquivosProjetos() {
     if (!accessToken) {
         document.getElementById('statusMsgProjetos').textContent = 'Conecte com o Google Drive.';
@@ -767,7 +678,7 @@ async function listarArquivosProjetos() {
     document.getElementById('statusMsgProjetos').textContent = 'Carregando arquivos...';
     try {
         const resp = await fetch(
-            https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc,
+            `https://www.googleapis.com/drive/v3/files?q='${PASTA_RELATORIOS_ID}'+in+parents+and+(mimeType='application/pdf'+or+mimeType='text/html')&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime+desc`,
             { headers: { 'Authorization': 'Bearer ' + accessToken } }
         );
         const data = await resp.json();
@@ -776,10 +687,10 @@ async function listarArquivosProjetos() {
             let html = '<ul style="list-style:none;padding:0;">';
             data.files.forEach(arq => {
                 const icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-                html += <li style="margin-bottom:12px;">
+                html += `<li style="margin-bottom:12px;">
                     ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
                     <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-                </li>;
+                </li>`;
             });
             html += '</ul>';
             document.getElementById('listaArquivosProjetos').innerHTML = html;
@@ -792,7 +703,6 @@ async function listarArquivosProjetos() {
     }
 }
 </script>
-
 <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js')
