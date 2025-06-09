@@ -338,10 +338,11 @@ margin-top: -5px;      /* Desce o botão na linha */
 </head>
 <body>
     <div class="header">
-        <div class="logo">
-            <img src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo da empresa" style="width: 100%; height: 100%; object-fit: contain;">
-        </div>
-        <div class="header-title">Central de Operações</div>
+        <div class="logo" id="userAvatarContainer">
+    <img id="userAvatarImg" src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo da empresa" style="width: 100%; height: 100%; object-fit: contain;">
+</div>
+<div class="header-title" id="userNameHeader">Central de Operações</div>
+
         <div style="margin-top:4px; font-size:1rem; font-weight:300; color:#c2cbd6;">
             Acesse as principais funções habilitadas
         </div>
@@ -555,10 +556,14 @@ function googleSignOut() {
     accessToken = '';
     document.getElementById('authStatus').textContent = "Faça login para salvar no Google Drive.";
     document.getElementById('btnGoogleAuth').style.display = '';
-document.getElementById('btnGoogleOut').style.display = 'none';
-
+    document.getElementById('btnGoogleOut').style.display = 'none';
     document.getElementById('userEmail').textContent = '';
+    // <- ADICIONE AQUI: restaura logo e título padrão no header
+    document.getElementById('userAvatarImg').src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
+    document.getElementById('userAvatarImg').alt = "Logo da empresa";
+    document.getElementById('userNameHeader').textContent = "Central de Operações";
 }
+
 async function getUserEmail() {
     if (!accessToken) return;
     try {
@@ -566,8 +571,23 @@ async function getUserEmail() {
             headers: {'Authorization': 'Bearer ' + accessToken}
         });
         const data = await resp.json();
-        if (data.email) document.getElementById('userEmail').textContent = data.email;
-    } catch {}
+        if (data.email) {
+            // Exibe nome e foto de perfil no header
+            if (data.picture) {
+                document.getElementById('userAvatarImg').src = data.picture;
+                document.getElementById('userAvatarImg').alt = "Foto de perfil do usuário";
+            }
+            if (data.name) {
+                // Altera título: pode exibir só nome, ou nome + "Central de Operações"
+                document.getElementById('userNameHeader').innerHTML =
+                  `<span class="user-name">${data.name}</span> <span style="font-weight:400;font-size:0.92em;color:#999;">(Central de Operações)</span>`;
+            }
+        }
+    } catch (e) {
+        // Se der erro, mantém o logo padrão
+        document.getElementById('userAvatarImg').src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
+        document.getElementById('userNameHeader').textContent = "Central de Operações";
+    }
 }
 
 // =============== Gravador de Áudio ===============
