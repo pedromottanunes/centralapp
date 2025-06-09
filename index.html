@@ -661,11 +661,7 @@ function resetarGravador() {
 
 async function salvarNoDriveResumable() {
     // Sempre renova token antes de iniciar upload
-    await new Promise(resolve => {
-        tokenClient.callback = () => resolve();
-        tokenClient.requestAccessToken({prompt: ''});
-    });
-
+  async function salvarNoDriveResumable() {
     if (!accessToken) {
         alert("Você precisa conectar com o Google Drive antes de salvar.");
         return;
