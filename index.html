@@ -329,19 +329,6 @@ margin-top: -5px;      /* Desce o botão na linha */
 }
 
 
-#userNameHeader .user-name {
-    font-size: 1.1rem;
-    font-weight: 500;
-    margin-left: 8px;
-    color: #3576f6;
-    display: inline;
-}
-#userAvatarImg {
-    border-radius: 100%;
-}
-
-	    
-
 
 
 
@@ -351,11 +338,10 @@ margin-top: -5px;      /* Desce o botão na linha */
 </head>
 <body>
     <div class="header">
-        <div class="logo" id="userAvatarContainer">
-    <img id="userAvatarImg" src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo da empresa" style="width: 100%; height: 100%; object-fit: contain;">
-</div>
-<div class="header-title" id="userNameHeader">Central de Operações</div>
-
+        <div class="logo">
+            <img src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo da empresa" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
+        <div class="header-title">Central de Operações</div>
         <div style="margin-top:4px; font-size:1rem; font-weight:300; color:#c2cbd6;">
             Acesse as principais funções habilitadas
         </div>
@@ -524,17 +510,20 @@ function getNextFileNumber(tipo) {
 
 	
 /* CONFIGS – TROQUE para os seus: */
-const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyDyKnas6na8NR_mVwvfefA7nOjTd6Pj1B4';
+const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
 
-const PASTA_ATAS_ID = '1ll1gBwCisRkDv1yv-mYQONa2DckYL4hG';      // ID da pasta de atasrelatórios de reuniões
-const PASTA_RELATORIOS_ID = '1ZlVzuLDfXxdfJ4CfQNYd2z3qrwn5k4yh'; // ID da pasta de relatórios de projetos
+const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atasrelatórios de reuniões
+const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK'; // ID da pasta de relatórios de projetos
 
 // Adicione as IDs das pastas de arquivos automatizados:
-const PASTA_ATAS_AUTOMATIZADAS_ID = '1IzOLHw58P3Wun_H3edDapBBKRT69AC36';
-const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1pw9nA9QpKBMzLEPmQwR_Q73isSpoJAbS';
+const PASTA_ATAS_AUTOMATIZADAS_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
+const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
 
+// Tamanho de cada fragmento que será enviado (múltiplo de 256 KB)
+const CHUNK_SIZE = 32 * 1024 * 1024; // 32 MB
+	
 
 let accessToken = '';
 let tokenClient = null;
@@ -570,14 +559,10 @@ function googleSignOut() {
     accessToken = '';
     document.getElementById('authStatus').textContent = "Faça login para salvar no Google Drive.";
     document.getElementById('btnGoogleAuth').style.display = '';
-    document.getElementById('btnGoogleOut').style.display = 'none';
-    document.getElementById('userEmail').textContent = '';
-    // <- ADICIONE AQUI: restaura logo e título padrão no header
-    document.getElementById('userAvatarImg').src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
-    document.getElementById('userAvatarImg').alt = "Logo da empresa";
-    document.getElementById('userNameHeader').textContent = "Central de Operações";
-}
+document.getElementById('btnGoogleOut').style.display = 'none';
 
+    document.getElementById('userEmail').textContent = '';
+}
 async function getUserEmail() {
     if (!accessToken) return;
     try {
@@ -585,23 +570,8 @@ async function getUserEmail() {
             headers: {'Authorization': 'Bearer ' + accessToken}
         });
         const data = await resp.json();
-        if (data.email) {
-            // Exibe nome e foto de perfil no header
-            if (data.picture) {
-                document.getElementById('userAvatarImg').src = data.picture;
-                document.getElementById('userAvatarImg').alt = "Foto de perfil do usuário";
-            }
-            if (data.name) {
-                // Altera título: pode exibir só nome, ou nome + "Central de Operações"
-                document.getElementById('userNameHeader').innerHTML =
-                  `<span class="user-name">${data.name}</span> <span style="font-weight:400;font-size:0.92em;color:#999;"></span>`;
-            }
-        }
-    } catch (e) {
-        // Se der erro, mantém o logo padrão
-        document.getElementById('userAvatarImg').src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
-        document.getElementById('userNameHeader').textContent = "Central de Operações";
-    }
+        if (data.email) document.getElementById('userEmail').textContent = data.email;
+    } catch {}
 }
 
 // =============== Gravador de Áudio ===============
@@ -707,70 +677,74 @@ function resetarGravador() {
 
     // Sempre renova token antes de iniciar upload
   async function salvarNoDriveResumable() {
-    if (!accessToken) {
-        alert("Você precisa conectar com o Google Drive antes de salvar.");
-        return;
-    }
-    if (!audioBlobGlobal) {
-        alert("Nenhum áudio para enviar.");
-        return;
-    }
-    statusMsg.textContent = 'Preparando envio de arquivo...';
+  /* 0. validações */
+  if (!accessToken)     { alert("Você precisa conectar com o Google Drive antes."); return; }
+  if (!audioBlobGlobal) { alert("Nenhum áudio para enviar."); return; }
 
-    // 1. Cria a sessão de upload
-    const numeroAudio = getNextFileNumber('audio');
-const metadata = {
-    name: `audio_reuniao_${numeroAudio}.wav`,
-        mimeType: audioBlobGlobal.type,
-        parents: [PASTA_ATAS_ID]
-    };
+  statusMsg.textContent = "Iniciando sessão resumable…";
 
-    const sessionRes = await fetch(
-        'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,webViewLink',
-        {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + accessToken,
-                'Content-Type': 'application/json; charset=UTF-8',
-                'X-Upload-Content-Type': audioBlobGlobal.type
-            },
-            body: JSON.stringify(metadata)
-        }
-    );
-    if (!sessionRes.ok) {
-        statusMsg.textContent = 'Falha ao iniciar upload resumable.';
-        return;
-    }
-    const uploadUrl = sessionRes.headers.get('Location');
-    if (!uploadUrl) {
-        statusMsg.textContent = 'Não foi possível obter URL de upload resumable.';
-        return;
-    }
+  /* 1. cria apenas UMA sessão de upload */
+  const metadata = {
+    name: `audio_reuniao_${getNextFileNumber('audio')}.wav`,
+    mimeType: audioBlobGlobal.type,
+    parents: [PASTA_ATAS_ID]
+  };
 
-    // 2. Envia o arquivo todo em um único PUT
-    const putRes = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': audioBlobGlobal.type,
-            'Content-Length': audioBlobGlobal.size
-        },
-        body: audioBlobGlobal
+  const start = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
+    {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + accessToken,
+        "Content-Type": "application/json; charset=UTF-8",
+        "X-Upload-Content-Type": audioBlobGlobal.type
+      },
+      body: JSON.stringify(metadata)
+    }
+  );
+
+  const uploadURL = start.headers.get("Location");
+  if (!uploadURL) { statusMsg.textContent = "Falha ao criar sessão."; return; }
+
+  /* 2. envia em blocos usando Content-Range */
+  let offset = 0;
+  const total = audioBlobGlobal.size;
+
+  while (offset < total) {
+
+    const chunk      = audioBlobGlobal.slice(offset, offset + CHUNK_SIZE, audioBlobGlobal.type);
+    const chunkEnd   = offset + chunk.size - 1;
+
+    const put = await fetch(uploadURL, {
+      method: "PUT",
+      headers: {
+        "Content-Type": audioBlobGlobal.type,
+        "Content-Length": chunk.size,
+        "Content-Range": `bytes ${offset}-${chunkEnd}/${total}`
+      },
+      body: chunk
     });
 
-    let result = {};
-    try {
-        result = await putRes.json();
-    } catch (e) {
-        statusMsg.textContent = 'Upload finalizado, mas não foi possível obter os dados do arquivo (pode ser bug temporário).';
-        return;
-    }
+    /* 308 => ainda faltam dados  |  200/201 => terminou */
+    if (put.status === 308) {
+      /* Lê o cabeçalho Range: bytes=0-<n> e avança */
+      const range = put.headers.get("Range");
+      offset = range ? Number(range.split("-")[1]) + 1 : offset + chunk.size;
 
-    if (result && result.id) {
-        statusMsg.innerHTML = 'Enviado para o Google Drive! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
+      statusMsg.textContent =
+        `Enviado: ${((offset / total) * 100).toFixed(1)} %`;
+    } else if (put.ok) {
+      const file = await put.json();
+      statusMsg.innerHTML =
+        `Upload concluído! <a href=\"https://drive.google.com/file/d/${file.id}/view\" target=\"_blank\">Abrir no Drive</a>`;
+      break;
     } else {
-        statusMsg.textContent = 'Falha ao enviar (resumable): ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
+      statusMsg.textContent = "Erro no bloco: " + put.status;
+      break;
     }
+  }
 }
+
 
 
 	
