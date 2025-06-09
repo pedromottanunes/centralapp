@@ -673,8 +673,9 @@ function resetarGravador() {
     statusMsg.textContent = 'Preparando envio grande para o Google Drive...';
 
     // 1. Cria a sessão de upload
-    const metadata = {
-        name: "gravacao_" + new Date().toISOString().replace(/[:.]/g,'_') + ".wav",
+    const numeroAudio = getNextFileNumber('audio');
+const metadata = {
+    name: `Audio_reuniao_${numeroAudio}.wav`,
         mimeType: audioBlobGlobal.type,
         parents: [PASTA_ATAS_ID]
     };
