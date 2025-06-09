@@ -434,7 +434,8 @@ margin-top: -5px;      /* Desce o botão na linha */
                 <button id="btnParar" onclick="pararGravacao()" disabled>⏹️ Parar</button>
             </div>
             <audio id="audioPlayer" class="audio-player" controls style="display:none;"></audio>
-            <button id="btnUpload" class="central-btn" style="width:100%;display:none;" onclick="salvarNoDrive()">Salvar no Google Drive</button>
+            <button id="btnUpload" class="central-btn" style="width:100%;display:none;" onclick="salvarNoDriveResumable()">Salvar no Google Drive</button>
+
             <div id="statusMsg" class="status-msg"></div>
         </div>
     </div>
@@ -658,7 +659,14 @@ function resetarGravador() {
 }
 
 // =============== Salvar no Google Drive (áudio) ===============
-async function salvarNoDrive() {
+
+async function salvarNoDriveResumable() {
+    // Sempre renova token antes de iniciar upload
+    await new Promise(resolve => {
+        tokenClient.callback = () => resolve();
+        tokenClient.requestAccessToken({prompt: ''});
+    });
+
     if (!accessToken) {
         alert("Você precisa conectar com o Google Drive antes de salvar.");
         return;
@@ -667,33 +675,64 @@ async function salvarNoDrive() {
         alert("Nenhum áudio para enviar.");
         return;
     }
-    statusMsg.textContent = 'Enviando para o Google Drive...';
+    statusMsg.textContent = 'Preparando envio grande para o Google Drive...';
+
+    // 1. Cria a sessão de upload
     const metadata = {
         name: "gravacao_" + new Date().toISOString().replace(/[:.]/g,'_') + ".wav",
         mimeType: audioBlobGlobal.type,
         parents: [PASTA_ATAS_ID]
     };
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', audioBlobGlobal);
 
-    try {
-        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+    const sessionRes = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,webViewLink',
+        {
             method: 'POST',
-            headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
-            body: form,
-        });
-        const result = await response.json();
-        if(result.id){
-            statusMsg.innerHTML = 'Enviado para o Google Drive! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
-        }else{
-            statusMsg.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
+            headers: {
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json; charset=UTF-8',
+                'X-Upload-Content-Type': audioBlobGlobal.type
+            },
+            body: JSON.stringify(metadata)
         }
-    } catch(e){
-        statusMsg.textContent = 'Erro na conexão com o Google Drive.';
+    );
+    if (!sessionRes.ok) {
+        statusMsg.textContent = 'Falha ao iniciar upload resumable.';
+        return;
+    }
+    const uploadUrl = sessionRes.headers.get('Location');
+    if (!uploadUrl) {
+        statusMsg.textContent = 'Não foi possível obter URL de upload resumable.';
+        return;
+    }
+
+    // 2. Envia o arquivo todo em um único PUT
+    const putRes = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': audioBlobGlobal.type,
+            'Content-Length': audioBlobGlobal.size
+        },
+        body: audioBlobGlobal
+    });
+
+    let result = {};
+    try {
+        result = await putRes.json();
+    } catch (e) {
+        statusMsg.textContent = 'Upload finalizado, mas não foi possível obter os dados do arquivo (pode ser bug temporário).';
+        return;
+    }
+
+    if (result && result.id) {
+        statusMsg.innerHTML = 'Enviado para o Google Drive! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
+    } else {
+        statusMsg.textContent = 'Falha ao enviar (resumable): ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
     }
 }
 
+
+	
 // =============== Conversão para WAV ===============
 function blobToWav(blob) {
     return new Promise((resolve, reject) => {
