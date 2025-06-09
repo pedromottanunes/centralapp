@@ -977,10 +977,10 @@ async function listarArquivosProjetos() {
         arquivosUsuario.forEach(arq => {
     let icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
     htmlUsuario += `<li style="margin-bottom:12px;">
-        ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
-    </li>`;
+    ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+    <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+    <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+</li>`;
 });
 
         htmlUsuario += '</ul>';
@@ -993,10 +993,11 @@ if (arq.mimeType === "application/pdf") icon = "📄";
 else if (arq.mimeType === "image/png") icon = "🖼️"; // Ícone de imagem para PNG
 else if (arq.mimeType === "text/html") icon = "🌐";
 
-            htmlAutomatizados += `<li style="margin-bottom:12px;">
-                ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-                <span style="color:#7abfa6; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-            </li>`;
+           htmlUsuario += `<li style="margin-bottom:12px;">
+    ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+    <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+    <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+</li>`;
         });
         htmlAutomatizados += '</ul>';
 
