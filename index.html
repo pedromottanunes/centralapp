@@ -498,6 +498,17 @@ margin-top: -5px;      /* Desce o botão na linha */
     </div>
 
 <script>
+
+// Gerencia contador local (localStorage) para uploads
+function getNextFileNumber(tipo) {
+    const key = 'contador_' + tipo;
+    let n = Number(localStorage.getItem(key)) || 1;
+    localStorage.setItem(key, n + 1);
+    return n;
+}
+
+
+	
 /* CONFIGS – TROQUE para os seus: */
 const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDyKnas6na8NR_mVwvfefA7nOjTd6Pj1B4';
@@ -675,7 +686,7 @@ function resetarGravador() {
     // 1. Cria a sessão de upload
     const numeroAudio = getNextFileNumber('audio');
 const metadata = {
-    name: `Audio_reuniao_${numeroAudio}.wav`,
+    name: `audio_reuniao_${numeroAudio}.wav`,
         mimeType: audioBlobGlobal.type,
         parents: [PASTA_ATAS_ID]
     };
@@ -826,8 +837,7 @@ async function salvarPdfNoDrive() {
     }
     statusMsgPdf.textContent = 'Enviando PDF para o Google Drive...';
     const metadata = {
-        name: "projeto_" + new Date().toISOString().replace(/[:.]/g,'_') + ".pdf",
-        mimeType: pdfBlobGlobal.type,
+        name: pdfBlobGlobal.name, // <--- PEGA O NOME ORIGINAL        mimeType: pdfBlobGlobal.type,
         parents: [PASTA_RELATORIOS_ID]
     };
     const form = new FormData();
