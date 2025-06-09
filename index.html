@@ -975,12 +975,14 @@ async function listarArquivosProjetos() {
         // Monta lista usuário
         let htmlUsuario = '<ul style="list-style:none;padding:0;">';
         arquivosUsuario.forEach(arq => {
-            let icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
-            htmlUsuario += `<li style="margin-bottom:12px;">
-                ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-                <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-            </li>`;
-        });
+    let icon = arq.mimeType === "application/pdf" ? "📄" : "🌐";
+    htmlUsuario += `<li style="margin-bottom:12px;">
+        ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+    </li>`;
+});
+
         htmlUsuario += '</ul>';
 
         // Monta lista automatizada
