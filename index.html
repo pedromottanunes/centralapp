@@ -17,8 +17,7 @@
             align-items: center;
         }
 
-	    
-
+	    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
 
         body::before {
     content: "";
@@ -499,6 +498,44 @@ margin-top: -5px;      /* Desce o botão na linha */
 
 <script>
 
+
+	
+function convertToMp3(webmBlob) {
+    return new Promise((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.onload = function () {
+            const arrayBuffer = this.result;
+            // Decodifica o áudio (usando AudioContext)
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
+                // Converte para PCM
+                const channelData = audioBuffer.getChannelData(0); // Mono
+                const sampleRate = audioBuffer.sampleRate;
+                // MP3 ENCODE (usando lamejs)
+                const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96); // mono, 96kbps
+                const samples = new Int16Array(channelData.length);
+                for (let i = 0; i < channelData.length; i++) {
+                    samples[i] = Math.max(-32768, Math.min(32767, channelData[i] * 32767));
+                }
+                const maxSamples = 1152;
+                let mp3Data = [];
+                for (let i = 0; i < samples.length; i += maxSamples) {
+                    const sampleChunk = samples.subarray(i, i + maxSamples);
+                    const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
+                    if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
+                }
+                const endBuf = mp3Encoder.flush();
+                if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
+                // Junta tudo
+                const blob = new Blob(mp3Data, { type: 'audio/mp3' });
+                resolve(blob);
+            }).catch(reject);
+        };
+        fileReader.onerror = reject;
+        fileReader.readAsArrayBuffer(webmBlob);
+    });
+}
+
 // Gerencia contador local (localStorage) para uploads
 function getNextFileNumber(tipo) {
     const key = 'contador_' + tipo;
@@ -507,9 +544,22 @@ function getNextFileNumber(tipo) {
     return n;
 }
 
+function splitBlob(blob, partSize) {
+    const parts = [];
+    let offset = 0;
+    while (offset < blob.size) {
+        const end = Math.min(offset + partSize, blob.size);
+        parts.push(blob.slice(offset, end, blob.type));
+        offset = end;
+    }
+    return parts;
+}
+
 
 	
 /* CONFIGS – TROQUE para os seus: */
+const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
+	
 const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
@@ -647,24 +697,21 @@ function iniciarGravacao() {
         };
         mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
         mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando...'; };
-        mediaRecorder.onstop = () => {
-            audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-            blobToWav(audioBlob).then(wavBlob => {
-                audioPlayer.src = URL.createObjectURL(wavBlob);
-                audioPlayer.style.display = 'block';
-                btnUpload.style.display = 'block';
-                statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
-                audioBlobGlobal = wavBlob;
-                stream.getTracks().forEach(track => track.stop());
-            }).catch(() => {
-                audioPlayer.src = URL.createObjectURL(audioBlob);
-                audioPlayer.style.display = 'block';
-                btnUpload.style.display = 'block';
-                statusMsg.textContent = 'Gravação finalizada (WEBM). Clique em "Salvar no Google Drive".';
-                audioBlobGlobal = audioBlob;
-                stream.getTracks().forEach(track => track.stop());
-            });
-        };
+       mediaRecorder.onstop = () => {
+    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    // Converte para MP3
+    convertToMp3(audioBlob).then(mp3Blob => {
+        audioPlayer.src = URL.createObjectURL(mp3Blob);
+        audioPlayer.style.display = 'block';
+        btnUpload.style.display = 'block';
+        statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
+        audioBlobGlobal = mp3Blob;
+    }).catch(() => {
+        statusMsg.textContent = 'Falha na conversão para MP3.';
+        audioBlobGlobal = audioBlob;
+    });
+};
+
         mediaRecorder.start();
     }).catch(err => {
         statusMsg.textContent = 'Erro ao acessar o microfone: ' + err.message;
@@ -709,73 +756,69 @@ function resetarGravador() {
 
     // Sempre renova token antes de iniciar upload
   async function salvarNoDriveResumable() {
-  /* 0. validações */
-  if (!accessToken)     { alert("Você precisa conectar com o Google Drive antes."); return; }
-  if (!audioBlobGlobal) { alert("Nenhum áudio para enviar."); return; }
+    if (!accessToken) { alert("Você precisa conectar com o Google Drive antes."); return; }
+    if (!audioBlobGlobal) { alert("Nenhum áudio para enviar."); return; }
 
-  statusMsg.textContent = "Iniciando sessão resumable…";
+    statusMsg.textContent = "Processando áudio para upload...";
 
-  /* 1. cria apenas UMA sessão de upload */
-  const metadata = {
-    name: `audio_reuniao_${getNextFileNumber('audio')}.wav`,
-    mimeType: audioBlobGlobal.type,
-    parents: [PASTA_ATAS_ID]
-  };
+    // 1. Divide o áudio MP3 em partes de até 23 MB
+    const partes = splitBlob(audioBlobGlobal, MAX_AUDIO_CHUNK);
 
-  const start = await fetch(
-    "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
-    {
-      method: "POST",
-      headers: {
-        "Authorization": "Bearer " + accessToken,
-        "Content-Type": "application/json; charset=UTF-8",
-        "X-Upload-Content-Type": audioBlobGlobal.type
-      },
-      body: JSON.stringify(metadata)
+    // 2. Para cada parte, faz o upload separadamente
+    for (let i = 0; i < partes.length; i++) {
+        const parte = partes[i];
+        const parteNum = i + 1;
+        statusMsg.textContent = `Enviando parte ${parteNum} de ${partes.length}...`;
+
+        const metadata = {
+            name: `audio_reuniao_${getNextFileNumber('audio')}_parte${parteNum}.mp3`,
+            mimeType: parte.type,
+            parents: [PASTA_ATAS_ID]
+        };
+
+        // Cria sessão resumable
+        const start = await fetch(
+            "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + accessToken,
+                    "Content-Type": "application/json; charset=UTF-8",
+                    "X-Upload-Content-Type": parte.type
+                },
+                body: JSON.stringify(metadata)
+            }
+        );
+
+        const uploadURL = start.headers.get("Location");
+        if (!uploadURL) {
+            statusMsg.textContent = "Falha ao criar sessão para parte " + parteNum;
+            return;
+        }
+
+        // Faz o upload do chunk inteiro
+        const put = await fetch(uploadURL, {
+            method: "PUT",
+            headers: {
+                "Content-Type": parte.type,
+                "Content-Length": parte.size,
+                "Content-Range": `bytes 0-${parte.size - 1}/${parte.size}`
+            },
+            body: parte
+        });
+
+        if (put.ok) {
+            const file = await put.json();
+            // Pode exibir link para cada parte enviada, se desejar
+            statusMsg.innerHTML += `<br>Parte ${parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
+        } else {
+            statusMsg.textContent = "Erro ao enviar parte " + parteNum + ": " + put.status;
+            return;
+        }
     }
-  );
-
-  const uploadURL = start.headers.get("Location");
-  if (!uploadURL) { statusMsg.textContent = "Falha ao criar sessão."; return; }
-
-  /* 2. envia em blocos usando Content-Range */
-  let offset = 0;
-  const total = audioBlobGlobal.size;
-
-  while (offset < total) {
-
-    const chunk      = audioBlobGlobal.slice(offset, offset + CHUNK_SIZE, audioBlobGlobal.type);
-    const chunkEnd   = offset + chunk.size - 1;
-
-    const put = await fetch(uploadURL, {
-      method: "PUT",
-      headers: {
-        "Content-Type": audioBlobGlobal.type,
-        "Content-Length": chunk.size,
-        "Content-Range": `bytes ${offset}-${chunkEnd}/${total}`
-      },
-      body: chunk
-    });
-
-    /* 308 => ainda faltam dados  |  200/201 => terminou */
-    if (put.status === 308) {
-      /* Lê o cabeçalho Range: bytes=0-<n> e avança */
-      const range = put.headers.get("Range");
-      offset = range ? Number(range.split("-")[1]) + 1 : offset + chunk.size;
-
-      statusMsg.textContent =
-        `Enviado: ${((offset / total) * 100).toFixed(1)} %`;
-    } else if (put.ok) {
-      const file = await put.json();
-      statusMsg.innerHTML =
-        `Upload concluído! <a href=\"https://drive.google.com/file/d/${file.id}/view\" target=\"_blank\">Abrir no Drive</a>`;
-      break;
-    } else {
-      statusMsg.textContent = "Erro no bloco: " + put.status;
-      break;
-    }
-  }
+    statusMsg.innerHTML += "<br>Upload concluído! Todas as partes foram enviadas.";
 }
+
 
 
 
