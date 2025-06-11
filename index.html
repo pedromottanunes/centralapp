@@ -42,7 +42,11 @@
       <div class="settings-card" id="cardGravar">
         <div class="icon">🎤</div><div class="label">Gravar Áudio</div>
       </div>
-      <div class="settings-card"><div class="icon">📑</div><div class="label">Enviar PDF</div></div>
+
+      
+<div class="settings-card" id="cardEnviarPdf"><div class="icon">📑</div><div class="label">Enviar PDF</div></div>
+
+      
       <div class="settings-card"><div class="icon">🎵</div><div class="label">Meus Áudios</div></div>
       <div class="settings-card"><div class="icon">📂</div><div class="label">Meus Projetos</div></div>
       <div class="settings-card"><div class="icon">🔑</div><div class="label">Login Google</div></div>
@@ -65,6 +69,7 @@
     </div>
   </div>
 <script>
+  
   // Google Drive params
   const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
   const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
@@ -106,6 +111,10 @@ tokenClient = google.accounts.oauth2.initTokenClient({
     btnParar.onclick   = pararGravacao;
     btnUpload.onclick  = salvarNoDriveResumable;
   };
+
+
+ 
+
 
   // LOGIN PRO GOOGLE
 userNameSpan = document.getElementById('userName');
@@ -366,6 +375,19 @@ function googleSignIn() {
   userNameSpan.textContent = "";
   statusMsg.textContent = "Faça login para conectar ao Google Drive.";
 }
+
+  
+  <!-- MODAL UPLOAD PDF -->
+<div class="modal-bg" id="modalLerProjeto">
+  <div class="modal-main">
+    <button class="close-btn" id="btnCloseLerProjeto" type="button">&times;</button>
+    <h3>Enviar PDF de Projeto</h3>
+    <input type="file" id="inputPdf" accept="application/pdf" style="margin-bottom:16px;">
+    <div id="pdfFileName" style="font-size:1rem; color:#2254a6;"></div>
+    <button id="btnUploadPdf" class="btn" style="width:100%; display:none;" type="button">Salvar PDF no Google Drive</button>
+    <div id="statusMsgPdf" class="status-msg"></div>
+  </div>
+</div> 
 
 
 </script>
