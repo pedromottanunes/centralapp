@@ -89,7 +89,15 @@
       document.getElementById('cardGravar').onclick = abrirGravador;
     };
 
-    // MODAL CONTROLE
+    btnGravar  = document.getElementById('btnGravar');
+btnPausar  = document.getElementById('btnPausar');
+btnParar   = document.getElementById('btnParar');
+audioPlayer= document.getElementById('audioPlayer');
+btnUpload  = document.getElementById('btnUpload');
+statusMsg  = document.getElementById('statusMsg');
+
+
+        // MODAL CONTROLE
     function abrirGravador() {
       document.getElementById('modalGravador').classList.add('open');
       resetarGravador();
@@ -100,12 +108,7 @@
 
     // ===== GRAVADOR =====
     let mediaRecorder, audioChunks = [], audioBlob;
-    const btnGravar = document.getElementById('btnGravar');
-    const btnPausar = document.getElementById('btnPausar');
-    const btnParar = document.getElementById('btnParar');
-    const audioPlayer = document.getElementById('audioPlayer');
-    const btnUpload = document.getElementById('btnUpload');
-    const statusMsg = document.getElementById('statusMsg');
+    
     let audioBlobGlobal = null;
 
     function iniciarGravacao() {
@@ -359,12 +362,7 @@ function toggle(id) {
 
 // ======= GRAVADOR =======
 let mediaRecorder, audioChunks = [], audioBlob;
-const btnGravar = document.getElementById('btnGravar');
-const btnPausar = document.getElementById('btnPausar');
-const btnParar = document.getElementById('btnParar');
-const audioPlayer = document.getElementById('audioPlayer');
-const btnUpload = document.getElementById('btnUpload');
-const statusMsg = document.getElementById('statusMsg');
+
 let audioBlobGlobal = null;
 
 function iniciarGravacao() {
