@@ -351,7 +351,7 @@ function googleSignIn() {
     const partes = splitBlob(audioBlobGlobal, MAX_AUDIO_CHUNK);
     for (let i = 0; i < partes.length; i++) {
       const parte = partes[i], parteNum = i + 1;
-      statusMsg.textContent = `Enviando parte ${parteNum} de ${partes.length}...`;
+      statusMsg.textContent = ` parte ${parteNum} de ${partes.length}...`;
       const metadata = {
         name: `audio_reuniao_${getNextFileNumber('audio')}_parte${parteNum}.mp3`,
         mimeType: parte.type, parents: [PASTA_ATAS_ID]
@@ -418,15 +418,17 @@ async function salvarPdfNoDrive() {
       body: form,
     });
     const result = await response.json();
-    if(result.id){
-      statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
-      resetarLerProjeto();
-    }else{
-      statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
-    }
-  } catch(e){
-    statusMsgPdf.textContent = 'Erro na conexão com o Google Drive.';
-  }
+   if(result.id){
+  statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
+  // Só limpa os campos do formulário, mas NÃO apaga o status agora
+  inputPdf.value = "";
+  pdfFileName.textContent = "";
+  btnUploadPdf.style.display = 'none';
+  pdfBlobGlobal = null;
+}else{
+  statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
+}
+
 }
 
   
