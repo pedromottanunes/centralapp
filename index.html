@@ -129,6 +129,11 @@ tokenClient = google.accounts.oauth2.initTokenClient({
   callback: handleTokenResponse
 });
 
+      // LOGIN PRO GOOGLE
+document.getElementById('logoArea').onclick = function() {
+  tokenClient.requestAccessToken();
+};
+
    
     btnGravar        = document.getElementById('btnGravar');
     btnPausar        = document.getElementById('btnPausar');
@@ -138,6 +143,8 @@ tokenClient = google.accounts.oauth2.initTokenClient({
     statusMsg        = document.getElementById('statusMsg');
     modalGravador    = document.getElementById('modalGravador');
     btnCloseGravador = document.getElementById('btnCloseGravador');
+    profileLogo  = document.getElementById('profileLogo');
+
 
       // Elementos do modal das pastas de atas de reuniões
   modalPastaReunioes    = document.getElementById('modalPastaReunioes');
@@ -182,13 +189,6 @@ inputPdf.onchange = function() {
   };
 
 
-
-  // LOGIN PRO GOOGLE
-userNameSpan = document.getElementById('userName');
-profileLogo  = document.getElementById('profileLogo');
-document.getElementById('logoArea').onclick = function() {
-  tokenClient.requestAccessToken();
-};
 
 
   function handleTokenResponse(tokenResponse) {
