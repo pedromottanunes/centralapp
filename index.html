@@ -433,7 +433,7 @@ function fecharPastasReunioes() {
 
   // Helper interna para buscar arquivos de cada pasta
   async function buscarArquivos(pastaId) {
-    const url = https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime,owners,permissions)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true;
+    const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime,owners,permissions)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
     const data = await resp.json();
     return data.files || [];
@@ -452,11 +452,11 @@ function fecharPastasReunioes() {
       let icon = "📄";
       if (arq.mimeType.startsWith("audio/")) icon = "🎵";
       else if (arq.mimeType === "text/html") icon = "🌐";
-      htmlUsuario += <li style="margin-bottom:12px;">
+      htmlUsuario += `<li style="margin-bottom:12px;">
         ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
         <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
         <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
-      </li>;
+      </li>`;
     });
     htmlUsuario += '</ul>';
 
@@ -468,11 +468,11 @@ function fecharPastasReunioes() {
       else if (arq.mimeType === "application/pdf") icon = "📄";
       else if (arq.mimeType === "text/html") icon = "🌐";
       else if (arq.mimeType === "image/png") icon = "🖼️";
-      htmlAutomatizados += <li style="margin-bottom:12px;">
+      htmlAutomatizados += `<li style="margin-bottom:12px;">
         ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
         <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
         <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
-      </li>;
+      </li>`;
     });
     htmlAutomatizados += '</ul>';
 
@@ -483,6 +483,7 @@ function fecharPastasReunioes() {
     document.getElementById('statusMsgReunioes').textContent = 'Erro ao buscar arquivos.';
   }
 } 
+
 
 async function excluirArquivoDrive(fileId, btn) {
   if (!confirm('Tem certeza que deseja excluir este arquivo?')) return;
