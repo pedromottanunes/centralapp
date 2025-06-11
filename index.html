@@ -109,6 +109,8 @@
   const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
   const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
   const PASTA_RELATORIOS_ID = '1Q-xMsOfm47M0kuyS0AdKSmDt5J0D4UAK';
+  const PASTA_ATAS_AUTOMATIZADAS_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ'; // ID da pasta de atas automatizadas
+
 
   let accessToken = '';
   let tokenClient = null;
@@ -137,6 +139,10 @@ tokenClient = google.accounts.oauth2.initTokenClient({
     modalGravador    = document.getElementById('modalGravador');
     btnCloseGravador = document.getElementById('btnCloseGravador');
 
+      // Elementos do modal das pastas de atas de reuniões
+  modalPastaReunioes    = document.getElementById('modalPastaReunioes');
+  btnClosePastaReunioes = document.getElementById('btnClosePastaReunioes');
+  btnClosePastaReunioes.onclick = fecharPastasReunioes;
     
     document.getElementById('cardGravar').onclick = abrirGravador;
     btnCloseGravador.onclick = fecharGravador;
@@ -144,6 +150,7 @@ tokenClient = google.accounts.oauth2.initTokenClient({
     btnPausar.onclick  = pausarGravacao;
     btnParar.onclick   = pararGravacao;
     btnUpload.onclick  = salvarNoDriveResumable;
+
 
 
 modalLerProjeto    = document.getElementById('modalLerProjeto');
@@ -172,11 +179,8 @@ inputPdf.onchange = function() {
 
 
 
-    
   };
 
-
- 
 
 
   // LOGIN PRO GOOGLE
@@ -408,6 +412,101 @@ function googleSignIn() {
   }
 
 
+ function abrirPastasReunioes() {
+  modalPastaReunioes.classList.add('open');
+  listarArquivosReunioes();
+}
+
+function fecharPastasReunioes() {
+  modalPastaReunioes.classList.remove('open');
+  document.getElementById('listaArquivosReunioesUsuario').innerHTML = "";
+  document.getElementById('listaArquivosReunioesAutomatizados').innerHTML = "";
+  document.getElementById('statusMsgReunioes').textContent = "";
+}
+
+ async function listarArquivosReunioes() {
+  if (!accessToken) {
+    document.getElementById('statusMsgReunioes').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
+
+  // Helper interna para buscar arquivos de cada pasta
+  async function buscarArquivos(pastaId) {
+    const url = https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime,owners,permissions)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true;
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    return data.files || [];
+  }
+
+  try {
+    // Busca nas duas pastas
+    const [arquivosUsuario, arquivosAutomatizados] = await Promise.all([
+      buscarArquivos(PASTA_ATAS_ID),
+      buscarArquivos(PASTA_ATAS_AUTOMATIZADAS_ID)
+    ]);
+
+    // Lista de arquivos do usuário (áudio bruto)
+    let htmlUsuario = '<ul style="list-style:none;padding:0;">';
+    arquivosUsuario.forEach(arq => {
+      let icon = "📄";
+      if (arq.mimeType.startsWith("audio/")) icon = "🎵";
+      else if (arq.mimeType === "text/html") icon = "🌐";
+      htmlUsuario += <li style="margin-bottom:12px;">
+        ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>;
+    });
+    htmlUsuario += '</ul>';
+
+    // Lista de arquivos automatizados (atas)
+    let htmlAutomatizados = '<ul style="list-style:none;padding:0;">';
+    arquivosAutomatizados.forEach(arq => {
+      let icon = "🧠";
+      if (arq.mimeType.startsWith("audio/")) icon = "🎵";
+      else if (arq.mimeType === "application/pdf") icon = "📄";
+      else if (arq.mimeType === "text/html") icon = "🌐";
+      else if (arq.mimeType === "image/png") icon = "🖼️";
+      htmlAutomatizados += <li style="margin-bottom:12px;">
+        ${icon} <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>;
+    });
+    htmlAutomatizados += '</ul>';
+
+    document.getElementById('listaArquivosReunioesUsuario').innerHTML = htmlUsuario;
+    document.getElementById('listaArquivosReunioesAutomatizados').innerHTML = htmlAutomatizados;
+    document.getElementById('statusMsgReunioes').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgReunioes').textContent = 'Erro ao buscar arquivos.';
+  }
+} 
+
+async function excluirArquivoDrive(fileId, btn) {
+  if (!confirm('Tem certeza que deseja excluir este arquivo?')) return;
+  if (!accessToken) { alert("Não autenticado!"); return; }
+  btn.disabled = true;
+  try {
+    let resp = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}`,
+      {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + accessToken }
+      }
+    );
+    if (resp.status === 204) {
+      alert('Arquivo excluído!');
+      listarArquivosReunioes && listarArquivosReunioes();
+    } else {
+      alert('Erro ao excluir.');
+    }
+  } catch (e) {
+    alert('Erro ao excluir arquivo.');
+  }
+  btn.disabled = false;
+}
 
 async function salvarPdfNoDrive() {
   if (!accessToken) {
@@ -501,5 +600,26 @@ function resetarLerProjeto() {
 
 
 </script>
+
+
+  <!-- MODAL PASTA ATAS DE REUNIÃO -->
+<div class="modal-bg" id="modalPastaReunioes">
+  <div class="modal-main" style="min-width:350px;max-width:98vw;">
+    <button class="close-btn" id="btnClosePastaReunioes" type="button">&times;</button>
+    <h3>Atas de Reuniões</h3>
+    <div style="display:flex; gap:24px; width:100%;">
+      <div style="flex:1; border-right:2px solid #e0e4ee; padding-right:12px;">
+        <div style="font-weight:600; color:#3576f6; margin-bottom:4px;">Áudio bruto do usuário</div>
+        <div id="listaArquivosReunioesUsuario" style="max-height:270px; overflow:auto;"></div>
+      </div>
+      <div style="flex:1; padding-left:12px;">
+        <div style="font-weight:600; color:#2254a6; margin-bottom:4px;">ATA da reunião</div>
+        <div id="listaArquivosReunioesAutomatizados" style="max-height:270px; overflow:auto;"></div>
+      </div>
+    </div>
+    <div id="statusMsgReunioes" class="status-msg"></div>
+  </div>
+</div>
+
 </body>
 </html>
