@@ -9,7 +9,7 @@
     body{font-family:'Segoe UI',Arial,sans-serif;background:#f8f9fa;min-height:100vh;display:flex;flex-direction:column}
     .container{width:100%;max-width:375px;margin:0 auto 90px auto;flex:1;display:flex;flex-direction:column;align-items:center}
     .settings-header{width:90%;display:flex;justify-content:space-between;align-items:center;margin:28px 0 18px}
-    .settings-title{font-size:2rem;font-weight:600;color:#222}
+    .settings-title{font-size:1.7rem;font-weight:600;color:#222}
     .profile-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px #e4e4e4}
     .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:90%;margin-bottom:32px}
     .settings-card{background:#fff;border-radius:18px;box-shadow:0 2px 8px rgba(75,0,160,.07);padding:22px 0 12px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:box-shadow .13s}
@@ -112,6 +112,10 @@ tokenClient = google.accounts.oauth2.initTokenClient({
 userNameSpan = document.getElementById('userName');
 profileLogo  = document.getElementById('profileLogo');
 document.getElementById('logoArea').onclick = googleSignIn;
+
+  // Coloque esta linha no window.onload para referenciar o título:
+let settingsTitle = document.getElementById('settingsTitle');
+
   
 function googleSignIn() {
   tokenClient.requestAccessToken();
@@ -335,7 +339,7 @@ function googleSignIn() {
     statusMsg.innerHTML += "<br>Upload concluído! Todas as partes foram enviadas.";
   }
 
-  async function getUserInfoGoogle() {
+ async function getUserInfoGoogle() {
   if (!accessToken) return;
   try {
     const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -347,11 +351,16 @@ function googleSignIn() {
       profileLogo.src = data.picture;
       profileLogo.alt = "Foto do usuário";
     }
-    // Mostra nome do usuário abaixo da logo
+    // Troca "Configurações" pelo nome do usuário com fonte menor
     if (data.name) {
-      userNameSpan.textContent = data.name;
+      settingsTitle.textContent = data.name;
+      settingsTitle.style.fontSize = '1.35rem'; // (ajuste aqui o tamanho)
+      settingsTitle.style.fontWeight = '600';
+      settingsTitle.style.color = '#2254a6'; // Azul igual ao nome antigo se quiser destacar
     } else {
-      userNameSpan.textContent = "";
+      settingsTitle.textContent = "Configurações";
+      settingsTitle.style.fontSize = '2rem'; // volta ao tamanho padrão
+      settingsTitle.style.color = '#222';
     }
     // Mensagem de status conectada
     statusMsg.textContent = `Conectado como ${data.name || data.email || 'usuário Google'}`;
@@ -360,13 +369,24 @@ function googleSignIn() {
   }
 }
 
+
   function googleSignOut() {
   accessToken = '';
   profileLogo.src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
   profileLogo.alt = "Logo";
   userNameSpan.textContent = "";
   statusMsg.textContent = "Faça login para conectar ao Google Drive.";
+}function googleSignOut() {
+  accessToken = '';
+  profileLogo.src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
+  profileLogo.alt = "Logo";
+  // Volta o título para "Configurações" com fonte original
+  settingsTitle.textContent = "Configurações";
+  settingsTitle.style.fontSize = '2rem';
+  settingsTitle.style.color = '#222';
+  statusMsg.textContent = "Faça login para conectar ao Google Drive.";
 }
+
 
 
 </script>
