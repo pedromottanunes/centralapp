@@ -91,10 +91,13 @@
       resetarGravador();
     }
     function fecharGravador() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') { mediaRecorder.stop(); }
-      document.getElementById('modalGravador').classList.remove('open');
-      resetarGravador();
-    }
+  if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  document.getElementById('modalGravador').classList.remove('open');
+  if (typeof resetarGravador === "function") resetarGravador();
+}
+
 
     // ===== GRAVADOR =====
     let mediaRecorder, audioChunks = [], audioBlob;
