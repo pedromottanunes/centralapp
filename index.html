@@ -66,12 +66,13 @@
 
   <script>
     function fecharGravador() {
-  if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-  }
-  document.getElementById('modalGravador').classList.remove('open');
-  resetarGravador && resetarGravador();
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+    }
+    modal.classList.remove('open');
+    resetarGravador();
 }
+
 
     // Parâmetros do Drive (troque se necessário!)
     const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
