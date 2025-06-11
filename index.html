@@ -418,14 +418,14 @@ async function salvarPdfNoDrive() {
       body: form,
     });
     const result = await response.json();
- if(result.id){
-  statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
-  resetarLerProjeto();
-}else{
-  statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
-}
-
-
+        if(result.id){
+            statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
+        }else{
+            statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
+        }
+    } catch(e){
+        statusMsgPdf.textContent = 'Erro na conexão com o Google Drive.';
+    }
 }
 
   
