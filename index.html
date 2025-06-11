@@ -186,11 +186,10 @@ inputPdf.onchange = function() {
   // LOGIN PRO GOOGLE
 userNameSpan = document.getElementById('userName');
 profileLogo  = document.getElementById('profileLogo');
-document.getElementById('logoArea').onclick = googleSignIn;
-  
-function googleSignIn() {
+document.getElementById('logoArea').onclick = function() {
   tokenClient.requestAccessToken();
-}
+};
+
 
   function handleTokenResponse(tokenResponse) {
   if (tokenResponse && tokenResponse.access_token) {
