@@ -31,10 +31,14 @@
 </head>
 <body>
   <div class="container">
-    <div class="settings-header">
-      <span class="settings-title">Configurações</span>
-      <img class="profile-pic" src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo">
-    </div>
+   <div class="settings-header">
+  <span class="settings-title">Configurações</span>
+  <div id="logoArea" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;">
+    <img id="profileLogo" class="profile-pic" src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo">
+    <span id="userName" style="font-size:1rem;font-weight:500;color:#2254a6;margin-top:4px;"></span>
+  </div>
+</div>
+
     <div class="settings-grid">
       <div class="settings-card" id="cardGravar">
         <div class="icon">🎤</div><div class="label">Gravar Áudio</div>
@@ -78,9 +82,14 @@
 
   window.onload = function() {
     gapi.load('client', () => { gapi.client.init({apiKey: API_KEY}); });
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID, scope: SCOPES, callback: ()=>{}
-    });
+tokenClient = google.accounts.oauth2.initTokenClient({
+  client_id: CLIENT_ID,
+  scope: SCOPES,
+  callback: handleTokenResponse
+});
+
+    
+
 
     btnGravar        = document.getElementById('btnGravar');
     btnPausar        = document.getElementById('btnPausar');
@@ -98,6 +107,30 @@
     btnParar.onclick   = pararGravacao;
     btnUpload.onclick  = salvarNoDriveResumable;
   };
+
+  // LOGIN PRO GOOGLE
+userNameSpan = document.getElementById('userName');
+profileLogo  = document.getElementById('profileLogo');
+document.getElementById('logoArea').onclick = googleSignIn;
+  
+function googleSignIn() {
+  tokenClient.requestAccessToken();
+}
+
+  function handleTokenResponse(tokenResponse) {
+  if (tokenResponse && tokenResponse.access_token) {
+    accessToken = tokenResponse.access_token;
+    statusMsg.textContent = "Google Drive conectado.";
+    getUserInfoGoogle();
+  } else {
+    statusMsg.textContent = "Erro na autenticação.";
+  }
+}
+
+  
+
+
+  // GRAVADOR  
 
   function abrirGravador() {
     modalGravador.classList.add('open');
@@ -301,6 +334,41 @@
     }
     statusMsg.innerHTML += "<br>Upload concluído! Todas as partes foram enviadas.";
   }
+
+  async function getUserInfoGoogle() {
+  if (!accessToken) return;
+  try {
+    const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { 'Authorization': 'Bearer ' + accessToken }
+    });
+    const data = await resp.json();
+    // Troca logo pela foto do usuário Google
+    if (data.picture) {
+      profileLogo.src = data.picture;
+      profileLogo.alt = "Foto do usuário";
+    }
+    // Mostra nome do usuário abaixo da logo
+    if (data.name) {
+      userNameSpan.textContent = data.name;
+    } else {
+      userNameSpan.textContent = "";
+    }
+    // Mensagem de status conectada
+    statusMsg.textContent = `Conectado como ${data.name || data.email || 'usuário Google'}`;
+  } catch (e) {
+    statusMsg.textContent = "Erro ao buscar dados do usuário Google.";
+  }
+}
+
+  function googleSignOut() {
+  accessToken = '';
+  profileLogo.src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
+  profileLogo.alt = "Logo";
+  userNameSpan.textContent = "";
+  statusMsg.textContent = "Faça login para conectar ao Google Drive.";
+}
+
+
 </script>
 </body>
 </html>
