@@ -418,16 +418,13 @@ async function salvarPdfNoDrive() {
       body: form,
     });
     const result = await response.json();
-   if(result.id){
+ if(result.id){
   statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
-  // Só limpa os campos do formulário, mas NÃO apaga o status agora
-  inputPdf.value = "";
-  pdfFileName.textContent = "";
-  btnUploadPdf.style.display = 'none';
-  pdfBlobGlobal = null;
+  resetarLerProjeto();
 }else{
   statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
 }
+
 
 }
 
