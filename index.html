@@ -501,52 +501,92 @@ margin-top: -5px;      /* Desce o botão na linha */
 
 
 	
-function convertToMp3(webmBlob) {
+function convertToMp3WithProcessing(webmBlob) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = function () {
             const arrayBuffer = this.result;
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
-                // Suporta mono ou estéreo
-                let samples, numChannels;
+                // ==== PROCESSAMENTO ====
+
+                // Cria um novo buffer para processamento
+                const offlineCtx = new OfflineAudioContext(
+                    1, // mono para transcrição
+                    audioBuffer.length,
+                    audioBuffer.sampleRate
+                );
+                // Copia dados do canal 0 (ou média, se estéreo)
+                let input;
                 if (audioBuffer.numberOfChannels > 1) {
                     // Mix para mono
                     const left = audioBuffer.getChannelData(0);
                     const right = audioBuffer.getChannelData(1);
-                    samples = new Float32Array(audioBuffer.length);
+                    const mono = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
+                    const monoData = mono.getChannelData(0);
                     for (let i = 0; i < audioBuffer.length; i++) {
-                        samples[i] = 0.5 * (left[i] + right[i]);
+                        monoData[i] = 0.5 * (left[i] + right[i]);
                     }
-                    numChannels = 1;
+                    input = offlineCtx.createBufferSource();
+                    input.buffer = mono;
                 } else {
-                    samples = audioBuffer.getChannelData(0);
-                    numChannels = 1;
+                    input = offlineCtx.createBufferSource();
+                    input.buffer = audioBuffer;
                 }
 
-                const sampleRate = audioBuffer.sampleRate;
-                const mp3Encoder = new lamejs.Mp3Encoder(numChannels, sampleRate, 96); // mono, 96kbps
-                const intSamples = new Int16Array(samples.length);
-                for (let i = 0; i < samples.length; i++) {
-                    intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
-                }
-                const maxSamples = 1152;
-                let mp3Data = [];
-                for (let i = 0; i < intSamples.length; i += maxSamples) {
-                    const sampleChunk = intSamples.subarray(i, i + maxSamples);
-                    const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
-                    if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
-                }
-                const endBuf = mp3Encoder.flush();
-                if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
-                const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
-                resolve(mp3Blob);
+                // Filtro passa-altas (remove graves)
+                const highpass = offlineCtx.createBiquadFilter();
+                highpass.type = "highpass";
+                highpass.frequency.value = 100;
+
+                // Filtro passa-baixas (remove agudos)
+                const lowpass = offlineCtx.createBiquadFilter();
+                lowpass.type = "lowpass";
+                lowpass.frequency.value = 9000;
+
+                // Amplificador (ajuste o valor conforme necessário)
+                const gain = offlineCtx.createGain();
+                gain.gain.value = 2.5; // amplifica ~2.5x (ajuste para não distorcer)
+
+                // Encadeia os filtros
+                input.connect(highpass);
+                highpass.connect(lowpass);
+                lowpass.connect(gain);
+                gain.connect(offlineCtx.destination);
+
+                // Roda o processamento
+                input.start();
+
+                offlineCtx.startRendering().then(processedBuffer => {
+                    // ==== FIM DO PROCESSAMENTO ====
+                    // Agora converte o buffer processado para MP3
+
+                    const samples = processedBuffer.getChannelData(0);
+                    const sampleRate = processedBuffer.sampleRate;
+                    const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96); // mono, 96kbps
+                    const intSamples = new Int16Array(samples.length);
+                    for (let i = 0; i < samples.length; i++) {
+                        intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
+                    }
+                    const maxSamples = 1152;
+                    let mp3Data = [];
+                    for (let i = 0; i < intSamples.length; i += maxSamples) {
+                        const sampleChunk = intSamples.subarray(i, i + maxSamples);
+                        const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
+                        if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
+                    }
+                    const endBuf = mp3Encoder.flush();
+                    if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
+                    const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
+                    resolve(mp3Blob);
+                }).catch(reject);
             }).catch(reject);
         };
         reader.onerror = reject;
         reader.readAsArrayBuffer(webmBlob);
     });
 }
+
 
 // Gerencia contador local (localStorage) para uploads
 function getNextFileNumber(tipo) {
@@ -711,18 +751,19 @@ function iniciarGravacao() {
         mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando...'; };
        mediaRecorder.onstop = () => {
     audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    // Converte para MP3
-    convertToMp3(audioBlob).then(mp3Blob => {
+    convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
         audioPlayer.src = URL.createObjectURL(mp3Blob);
         audioPlayer.style.display = 'block';
         btnUpload.style.display = 'block';
         statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
         audioBlobGlobal = mp3Blob;
-    }).catch(() => {
+    }).catch((err) => {
+        console.error("Erro na conversão/processamento:", err);
         statusMsg.textContent = 'Falha na conversão para MP3.';
         audioBlobGlobal = audioBlob;
     });
 };
+
 
         mediaRecorder.start();
     }).catch(err => {
