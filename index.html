@@ -559,10 +559,23 @@ function googleSignOut() {
     accessToken = '';
     document.getElementById('authStatus').textContent = "Faça login para salvar no Google Drive.";
     document.getElementById('btnGoogleAuth').style.display = '';
-document.getElementById('btnGoogleOut').style.display = 'none';
-
+    document.getElementById('btnGoogleOut').style.display = 'none';
     document.getElementById('userEmail').textContent = '';
+
+    // Volta a logo original
+    const logoImg = document.querySelector('.logo img');
+    if (logoImg) {
+        logoImg.src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
+        logoImg.alt = "Logo da empresa";
+    }
+    // Volta o texto original
+    const headerTitle = document.querySelector('.header-title');
+    if (headerTitle) {
+        headerTitle.textContent = "Central de Operações";
+    }
 }
+
+	
 async function getUserEmail() {
     if (!accessToken) return;
     try {
@@ -570,9 +583,28 @@ async function getUserEmail() {
             headers: {'Authorization': 'Bearer ' + accessToken}
         });
         const data = await resp.json();
-        if (data.email) document.getElementById('userEmail').textContent = data.email;
-    } catch {}
+        if (data.picture) {
+            // Troca o logo do cabeçalho pela foto do usuário
+            const logoImg = document.querySelector('.logo img');
+            if (logoImg) {
+                logoImg.src = data.picture;
+                logoImg.alt = "Foto do usuário";
+            }
+        }
+        if (data.name) {
+            // Troca o texto "Central de Operações" pelo nome do usuário
+            const headerTitle = document.querySelector('.header-title');
+            if (headerTitle) {
+                headerTitle.textContent = data.name;
+            }
+        }
+        // Se quiser exibir o email em outro lugar, pode manter ou remover a linha abaixo
+        // document.getElementById('userEmail').textContent = data.email;
+    } catch (e) {
+        // Opcional: pode mostrar algum erro aqui se quiser
+    }
 }
+
 
 // =============== Gravador de Áudio ===============
 let mediaRecorder, audioChunks = [], audioBlob;
