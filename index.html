@@ -9,133 +9,70 @@
     *{box-sizing:border-box;padding:0;margin:0}
     body{
       font-family:'Segoe UI',Arial,sans-serif;
-      background:#f8f9fa;
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
+      background:#f8f9fa;min-height:100vh;display:flex;flex-direction:column;
     }
-    /* --- CONTAINER PRINCIPAL --- */
-    .container{
-      width:100%;max-width:375px;margin:0 auto 90px auto;flex:1;display:flex;flex-direction:column;align-items:center;
-    }
-    .settings-header{
-      display:flex;align-items:center;justify-content:space-between;width:90%;margin:28px 0 18px 0;
-    }
-    .settings-title{font-size:2rem;font-weight:600;color:#222;letter-spacing:0.1px;transition:color .2s}
-    .profile-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px #e4e4e4;transition:box-shadow .2s}
-    /* --- GRID DE CARDS --- */
-    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:90%;margin:0 auto 32px auto}
-    .settings-card{
-      background:#fff;border-radius:18px;box-shadow:0 2px 8px rgba(75,0,160,.07);padding:22px 0 12px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:box-shadow .13s;min-height:90px;user-select:none
-    }
-    .settings-card.no-func{cursor:default;opacity:.78}
-    .settings-card:hover:not(.no-func){box-shadow:0 4px 18px rgba(75,0,160,.12)}
-    .settings-card .icon{width:40px;height:40px;margin-bottom:12px;background:#7e44e6;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:0 2px 8px #ebe1ff}
-    .settings-card .label{font-size:1rem;color:#252525;font-weight:500;letter-spacing:.02em;text-align:center}
-    /* --- BOTTOM NAV --- */
-    .bottom-nav{
-      width:100%;max-width:375px;margin:0 auto;background:#fff;height:64px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 16px;border-radius:0 0 18px 18px;box-shadow:0 -2px 18px #eee;position:fixed;left:50%;transform:translateX(-50%);bottom:0;z-index:10}
-    .bottom-nav .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#b4aee8;font-size:1.5rem;padding-top:8px}
-    .bottom-nav .nav-btn.active{color:#7e44e6}
-    .bottom-nav .nav-center-btn{background:#7e44e6;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:absolute;left:50%;transform:translateX(-50%) translateY(-22px);color:#fff;font-size:2rem;box-shadow:0 6px 24px #ede3fe;border:6px solid #fff;z-index:2}
-    /* --- MODAIS GENERICOS --- */
-    .modal-bg{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.45);z-index:99;justify-content:center;align-items:center}
+    .container{width:100%;max-width:375px;margin:0 auto 90px auto;flex:1;display:flex;flex-direction:column;align-items:center;}
+    .settings-header{width:90%;display:flex;justify-content:space-between;align-items:center;margin:28px 0 18px;}
+    .settings-title{font-size:2rem;font-weight:600;color:#222;}
+    .profile-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px #e4e4e4;}
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:90%;margin-bottom:32px;}
+    .settings-card{background:#fff;border-radius:18px;box-shadow:0 2px 8px rgba(75,0,160,.07);padding:22px 0 12px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:box-shadow .13s;min-height:90px;user-select:none}
+    .settings-card:hover{box-shadow:0 4px 18px rgba(75,0,160,.12);}
+    .settings-card.no-func{cursor:default;opacity:.75}
+    .icon{width:40px;height:40px;margin-bottom:12px;background:#7e44e6;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:0 2px 8px #ebe1ff}
+    .label{font-size:1rem;font-weight:500;color:#252525;text-align:center}
+    /* NAV */
+    .bottom-nav{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:375px;height:64px;background:#fff;box-shadow:0 -2px 18px #eee;display:flex;justify-content:space-between;align-items:flex-end;padding:0 16px;border-radius:0 0 18px 18px;z-index:10}
+    .nav-btn{flex:1;color:#b4aee8;font-size:1.5rem;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-top:8px}
+    .nav-btn.active{color:#7e44e6}
+    .nav-center-btn{position:absolute;left:50%;transform:translateX(-50%) translateY(-22px);width:56px;height:56px;border-radius:50%;background:#7e44e6;color:#fff;font-size:2rem;display:flex;align-items:center;justify-content:center;border:6px solid #fff;box-shadow:0 6px 24px #ede3fe;z-index:2}
+    /* MODAL */
+    .modal-bg{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.45);justify-content:center;align-items:center;z-index:99}
     .modal-bg.open{display:flex}
-    .modal-main{background:#fff;padding:28px 24px 24px;border-radius:20px;box-shadow:0 2px 24px rgba(40,70,140,.15);min-width:280px;max-width:95vw;display:flex;flex-direction:column;align-items:center;gap:16px;position:relative}
-    .close-btn{position:absolute;right:14px;top:14px;background:transparent;border:none;font-size:1.5rem;color:#888;cursor:pointer}
-    .btn{background:#3576f6;color:#fff;border:none;border-radius:20px;padding:11px 22px;font-size:1rem;font-weight:500;cursor:pointer;box-shadow:0 2px 8px rgba(53,118,246,.1);transition:background .2s}
+    .modal-main{background:#fff;padding:28px 24px 24px;border-radius:20px;box-shadow:0 2px 24px rgba(40,70,140,.15);max-width:95vw;min-width:280px;display:flex;flex-direction:column;align-items:center;gap:14px;position:relative}
+    .close-btn{position:absolute;right:14px;top:14px;border:none;background:none;font-size:1.5rem;color:#888;cursor:pointer}
+    .btn{background:#3576f6;color:#fff;border:none;border-radius:18px;padding:10px 20px;font-size:1rem;font-weight:500;cursor:pointer;box-shadow:0 2px 8px rgba(53,118,246,.1);}
     .btn:hover{background:#2254a6}
-    .status-msg{font-size:1rem;color:#2254a6;margin-top:5px;text-align:center;word-break:break-word}
-    .file-list{max-height:250px;overflow-y:auto;width:100%}
+    .status-msg{font-size:.95rem;color:#2254a6;text-align:center}
+    .file-list{width:100%;max-height:240px;overflow-y:auto}
     .file-list ul{list-style:none;padding:0;margin:0}
     .file-list li{margin-bottom:10px}
-    .del-btn{color:#c00;border:none;background:none;font-size:1.1rem;margin-left:6px;cursor:pointer}
-    @media(max-width:400px){.container,.bottom-nav{max-width:100vw}.settings-title{font-size:1.3rem}.settings-grid{gap:10px}.settings-card{padding:15px 0 10px}}
+    .del-btn{border:none;background:none;color:#c00;font-size:1.1rem;margin-left:6px;cursor:pointer}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://apis.google.com/js/api.js" async defer></script>
-  <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
   <div class="container">
     <div class="settings-header">
       <span class="settings-title" id="settingsTitle">Configurações</span>
-      <img src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo" class="profile-pic" id="profilePic">
+      <img id="profilePic" class="profile-pic" src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo">
     </div>
     <div class="settings-grid">
-      <div class="settings-card" id="cardGravar">
-        <div class="icon">🎤</div><div class="label">Gravar Reunião</div>
-      </div>
-      <div class="settings-card" id="cardUploadPdf">
-        <div class="icon">📑</div><div class="label">Enviar PDF</div>
-      </div>
-      <div class="settings-card" id="cardAudios">
-        <div class="icon">🎵</div><div class="label">Meus Áudios</div>
-      </div>
-      <div class="settings-card" id="cardProjetos">
-        <div class="icon">📂</div><div class="label">Meus Projetos</div>
-      </div>
-      <div class="settings-card" id="cardLogin">
-        <div class="icon">🔑</div><div class="label" id="loginLabel">Login Google</div>
-      </div>
-      <div class="settings-card no-func">
-        <div class="icon">⚙️</div><div class="label">Configurações</div>
-      </div>
+      <div class="settings-card" id="cardGravar"><div class="icon">🎤</div><div class="label">Gravar Áudio</div></div>
+      <div class="settings-card" id="cardUploadPdf"><div class="icon">📑</div><div class="label">Enviar PDF</div></div>
+      <div class="settings-card" id="cardAudios"><div class="icon">🎵</div><div class="label">Meus Áudios</div></div>
+      <div class="settings-card" id="cardProjetos"><div class="icon">📂</div><div class="label">Meus Projetos</div></div>
+      <div class="settings-card" id="cardLogin"><div class="icon">🔑</div><div class="label" id="loginLabel">Login Google</div></div>
+      <div class="settings-card no-func"><div class="icon">⚙️</div><div class="label">Configuração</div></div>
     </div>
   </div>
-  <!-- NAV -->
   <nav class="bottom-nav">
-    <div class="nav-btn active"><span>🏠</span></div>
-    <div class="nav-btn"><span>📁</span></div>
-    <div class="nav-center-btn"><span>➕</span></div>
-    <div class="nav-btn"><span>🔔</span></div>
-    <div class="nav-btn"><span>👤</span></div>
+    <div class="nav-btn active">🏠</div><div class="nav-btn">📁</div><div class="nav-center-btn">➕</div><div class="nav-btn">🔔</div><div class="nav-btn">👤</div>
   </nav>
-  <!-- MODAIS -->
-  <div class="modal-bg" id="modalGravador">
-    <div class="modal-main">
-      <button class="close-btn" onclick="toggleModal('modalGravador',false)">&times;</button>
-      <h3>Gravador de Áudio</h3>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
-        <button class="btn" id="btnGravar" onclick="iniciarGravacao()">⏺️ Gravar</button>
-        <button class="btn" id="btnPausar" onclick="pausarGravacao()" disabled>⏸️ Pausar</button>
-        <button class="btn" id="btnParar" onclick="pararGravacao()" disabled>⏹️ Parar</button>
-      </div>
-      <audio id="audioPlayer" controls style="display:none;width:100%;margin-top:10px"></audio>
-      <button class="btn" id="btnUpload" style="width:100%;display:none;margin-top:8px" onclick="salvarNoDriveResumable()">Salvar no Google Drive</button>
-      <div class="status-msg" id="statusMsg"></div>
-    </div>
-  </div>
-  <div class="modal-bg" id="modalPdf">
-    <div class="modal-main">
-      <button class="close-btn" onclick="toggleModal('modalPdf',false)">&times;</button>
-      <h3>Upload de PDF</h3>
-      <input type="file" id="inputPdf" accept="application/pdf" style="margin-bottom:10px;">
-      <div id="pdfFileName" class="status-msg"></div>
-      <button class="btn" id="btnUploadPdf" style="width:100%;display:none;margin-top:6px" onclick="salvarPdfNoDrive()">Enviar ao Drive</button>
-      <div class="status-msg" id="statusMsgPdf"></div>
-    </div>
-  </div>
-  <div class="modal-bg" id="modalAudios">
-    <div class="modal-main">
-      <button class="close-btn" onclick="toggleModal('modalAudios',false)">&times;</button>
-      <h3>Áudios Enviados</h3>
-      <div class="file-list" id="listaArquivosReunioesUsuario"></div>
-      <div class="status-msg" id="statusMsgReunioes"></div>
-    </div>
-  </div>
-  <div class="modal-bg" id="modalProjetos">
-    <div class="modal-main">
-      <button class="close-btn" onclick="toggleModal('modalProjetos',false)">&times;</button>
-      <h3>Projetos Enviados</h3>
-      <div class="file-list" id="listaArquivosProjetosUsuario"></div>
-      <div class="status-msg" id="statusMsgProjetos"></div>
-    </div>
-  </div>
-  <div class="modal-bg" id="modalLogin">
-    <div class="modal-main">
-      <button class="close-btn" onclick="toggleModal('modalLogin',false)">&times;</button>
-      <h3>Autenticação Google</h3>
-      <div class="status-msg" id="authStatus"></div>
-      <button class="btn" id="btnGoogleAuth" style="margin-top:6px" onclick="googleSignIn()">Login
+  <!-- MODAIS BÁSICOS (exibição simplificada) -->
+  <div class="modal-bg" id="modalDummy"><div class="modal-main"><button class="close-btn" onclick="toggleModal('modalDummy',false)">&times;</button><h3>Funcionalidade em construção…</h3></div></div>
+  <script>
+   // Map card IDs a funções (exibe modal placeholder por enquanto)
+   const cardMap={cardGravar:'modalDummy',cardUploadPdf:'modalDummy',cardAudios:'modalDummy',cardProjetos:'modalDummy',cardLogin:'modalDummy'};
+   document.addEventListener('DOMContentLoaded',()=>{
+     Object.keys(cardMap).forEach(id=>{
+       const el=document.getElementById(id);
+       if(el) el.addEventListener('click',()=>toggleModal(cardMap[id],true));
+     });
+   });
+   function toggleModal(id,open){const modal=document.getElementById(id);if(!modal)return;open?modal.classList.add('open'):modal.classList.remove('open');}
+  </script>
+</body>
+</html>
