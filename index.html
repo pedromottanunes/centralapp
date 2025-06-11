@@ -68,6 +68,21 @@
       <div id="statusMsg" class="status-msg"></div>
     </div>
   </div>
+
+<!-- MODAL UPLOAD PDF -->
+<div class="modal-bg" id="modalLerProjeto">
+  <div class="modal-main">
+    <button class="close-btn" id="btnCloseLerProjeto" type="button">&times;</button>
+    <h3>Enviar PDF de Projeto</h3>
+    <input type="file" id="inputPdf" accept="application/pdf" style="margin-bottom:16px;">
+    <div id="pdfFileName" style="font-size:1rem; color:#2254a6;"></div>
+    <button id="btnUploadPdf" class="btn" style="width:100%; display:none;" type="button">Salvar PDF no Google Drive</button>
+    <div id="statusMsgPdf" class="status-msg"></div>
+  </div>
+</div>
+
+
+  
 <script>
   
   // Google Drive params
@@ -377,17 +392,6 @@ function googleSignIn() {
 }
 
   
-  <!-- MODAL UPLOAD PDF -->
-<div class="modal-bg" id="modalLerProjeto">
-  <div class="modal-main">
-    <button class="close-btn" id="btnCloseLerProjeto" type="button">&times;</button>
-    <h3>Enviar PDF de Projeto</h3>
-    <input type="file" id="inputPdf" accept="application/pdf" style="margin-bottom:16px;">
-    <div id="pdfFileName" style="font-size:1rem; color:#2254a6;"></div>
-    <button id="btnUploadPdf" class="btn" style="width:100%; display:none;" type="button">Salvar PDF no Google Drive</button>
-    <div id="statusMsgPdf" class="status-msg"></div>
-  </div>
-</div> 
 
 
 </script>
