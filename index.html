@@ -91,12 +91,15 @@
       resetarGravador();
     }
     function fecharGravador() {
+  // Garante que para a gravação (se houver)
   if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state !== 'inactive') {
     mediaRecorder.stop();
   }
   document.getElementById('modalGravador').classList.remove('open');
-  if (typeof resetarGravador === "function") resetarGravador();
+  // Limpa a interface do modal (opcional)
+  resetarGravador && resetarGravador();
 }
+
 
 
     // ===== GRAVADOR =====
