@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+	            <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
+
     <meta charset="UTF-8">
     <title>Central de Controle</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,7 +19,6 @@
             align-items: center;
         }
 
-	    <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
 
         body::before {
     content: "";
@@ -502,37 +503,48 @@ margin-top: -5px;      /* Desce o botão na linha */
 	
 function convertToMp3(webmBlob) {
     return new Promise((resolve, reject) => {
-        const fileReader = new FileReader();
-        fileReader.onload = function () {
+        const reader = new FileReader();
+        reader.onload = function () {
             const arrayBuffer = this.result;
-            // Decodifica o áudio (usando AudioContext)
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
-                // Converte para PCM
-                const channelData = audioBuffer.getChannelData(0); // Mono
+                // Suporta mono ou estéreo
+                let samples, numChannels;
+                if (audioBuffer.numberOfChannels > 1) {
+                    // Mix para mono
+                    const left = audioBuffer.getChannelData(0);
+                    const right = audioBuffer.getChannelData(1);
+                    samples = new Float32Array(audioBuffer.length);
+                    for (let i = 0; i < audioBuffer.length; i++) {
+                        samples[i] = 0.5 * (left[i] + right[i]);
+                    }
+                    numChannels = 1;
+                } else {
+                    samples = audioBuffer.getChannelData(0);
+                    numChannels = 1;
+                }
+
                 const sampleRate = audioBuffer.sampleRate;
-                // MP3 ENCODE (usando lamejs)
-                const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96); // mono, 96kbps
-                const samples = new Int16Array(channelData.length);
-                for (let i = 0; i < channelData.length; i++) {
-                    samples[i] = Math.max(-32768, Math.min(32767, channelData[i] * 32767));
+                const mp3Encoder = new lamejs.Mp3Encoder(numChannels, sampleRate, 96); // mono, 96kbps
+                const intSamples = new Int16Array(samples.length);
+                for (let i = 0; i < samples.length; i++) {
+                    intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
                 }
                 const maxSamples = 1152;
                 let mp3Data = [];
-                for (let i = 0; i < samples.length; i += maxSamples) {
-                    const sampleChunk = samples.subarray(i, i + maxSamples);
+                for (let i = 0; i < intSamples.length; i += maxSamples) {
+                    const sampleChunk = intSamples.subarray(i, i + maxSamples);
                     const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
                     if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
                 }
                 const endBuf = mp3Encoder.flush();
                 if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
-                // Junta tudo
-                const blob = new Blob(mp3Data, { type: 'audio/mp3' });
-                resolve(blob);
+                const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
+                resolve(mp3Blob);
             }).catch(reject);
         };
-        fileReader.onerror = reject;
-        fileReader.readAsArrayBuffer(webmBlob);
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(webmBlob);
     });
 }
 
