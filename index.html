@@ -5,17 +5,16 @@
   <title>Configurações</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* ... (mantém o CSS atual do seu layout novo) ... */
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI',Arial,sans-serif;background:#f8f9fa;min-height:100vh;display:flex;flex-direction:column}
     .container{width:100%;max-width:375px;margin:0 auto 90px auto;flex:1;display:flex;flex-direction:column;align-items:center}
     .settings-header{width:90%;display:flex;justify-content:space-between;align-items:center;margin:28px 0 18px}
-    .settings-title{font-size:2rem;font-weight:600;color:#222;transition:color .2s}
-    .profile-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px #e4e4e4;transition:box-shadow .2s}
+    .settings-title{font-size:2rem;font-weight:600;color:#222}
+    .profile-pic{width:38px;height:38px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 2px 8px #e4e4e4}
     .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;width:90%;margin-bottom:32px}
-    .settings-card{background:#fff;border-radius:18px;box-shadow:0 2px 8px rgba(75,0,160,.07);padding:22px 0 12px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:box-shadow .13s;user-select:none}
+    .settings-card{background:#fff;border-radius:18px;box-shadow:0 2px 8px rgba(75,0,160,.07);padding:22px 0 12px;display:flex;flex-direction:column;align-items:center;cursor:pointer;transition:box-shadow .13s}
     .settings-card:hover{box-shadow:0 4px 18px rgba(75,0,160,.12)}
-    .icon{width:40px;height:40px;margin-bottom:12px;background:#7e44e6;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem;box-shadow:0 2px 8px #ebe1ff}
+    .icon{width:40px;height:40px;margin-bottom:12px;background:#7e44e6;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.6rem}
     .label{font-size:1rem;font-weight:500;color:#252525;text-align:center}
     .modal-bg{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.45);justify-content:center;align-items:center;z-index:99}
     .modal-bg.open{display:flex}
@@ -40,7 +39,6 @@
       <div class="settings-card" id="cardGravar">
         <div class="icon">🎤</div><div class="label">Gravar Áudio</div>
       </div>
-      <!-- outros cards: só visual, sem função no momento -->
       <div class="settings-card"><div class="icon">📑</div><div class="label">Enviar PDF</div></div>
       <div class="settings-card"><div class="icon">🎵</div><div class="label">Meus Áudios</div></div>
       <div class="settings-card"><div class="icon">📂</div><div class="label">Meus Projetos</div></div>
@@ -51,509 +49,258 @@
   <!-- MODAL GRAVADOR DE ÁUDIO -->
   <div class="modal-bg" id="modalGravador">
     <div class="modal-main">
-       <button class="close-btn" onclick="fecharGravador()">&times;</button>
+      <button class="close-btn" id="btnCloseGravador" type="button">&times;</button>
       <h3>Gravador de Áudio</h3>
       <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
-        <button class="btn" id="btnGravar" onclick="iniciarGravacao()">⏺️ Gravar</button>
-        <button class="btn" id="btnPausar" onclick="pausarGravacao()" disabled>⏸️ Pausar</button>
-        <button class="btn" id="btnParar" onclick="pararGravacao()" disabled>⏹️ Parar</button>
+        <button class="btn" id="btnGravar" type="button">⏺️ Gravar</button>
+        <button class="btn" id="btnPausar" type="button" disabled>⏸️ Pausar</button>
+        <button class="btn" id="btnParar" type="button" disabled>⏹️ Parar</button>
       </div>
       <audio id="audioPlayer" class="audio-player" controls style="display:none;"></audio>
-      <button class="btn" id="btnUpload" style="width:100%;display:none;" onclick="salvarNoDriveResumable()">Salvar no Google Drive</button>
+      <button class="btn" id="btnUpload" style="width:100%;display:none;" type="button">Salvar no Google Drive</button>
       <div id="statusMsg" class="status-msg"></div>
     </div>
   </div>
-
-  
-  <script>
-  
-
-
-    // Parâmetros do Drive (troque se necessário!)
-    const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
-    const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
-    const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
-    const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
-    const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
-
-    let accessToken = '';
-    let tokenClient = null;
-
-    window.onload = function() {
-      gapi.load('client', () => { gapi.client.init({apiKey: API_KEY}); });
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID, scope: SCOPES, callback: ()=>{}
-      });
-
-      // Liga card do gravador ao modal
-      document.getElementById('cardGravar').onclick = abrirGravador;
-    };
-
-    btnGravar  = document.getElementById('btnGravar');
-btnPausar  = document.getElementById('btnPausar');
-btnParar   = document.getElementById('btnParar');
-audioPlayer= document.getElementById('audioPlayer');
-btnUpload  = document.getElementById('btnUpload');
-statusMsg  = document.getElementById('statusMsg');
-
-
-        // MODAL CONTROLE
-    function abrirGravador() {
-      document.getElementById('modalGravador').classList.add('open');
-      resetarGravador();
-    }
-  
-
-
-
-    // ===== GRAVADOR =====
-    let mediaRecorder, audioChunks = [], audioBlob;
-    
-    let audioBlobGlobal = null;
-
-    function iniciarGravacao() {
-      if (!navigator.mediaDevices || !window.MediaRecorder) {
-        alert("Seu navegador não suporta gravação de áudio!");
-        return;
-      }
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-        mediaRecorder.onstart = () => {
-          btnGravar.disabled = true; btnPausar.disabled = false; btnParar.disabled = false;
-          statusMsg.textContent = 'Gravando...';
-          audioPlayer.style.display = 'none';
-          btnUpload.style.display = 'none';
-        };
-        mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
-        mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando...'; };
-        mediaRecorder.onstop = () => {
-          audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
-            audioPlayer.src = URL.createObjectURL(mp3Blob);
-            audioPlayer.style.display = 'block';
-            btnUpload.style.display = 'block';
-            statusMsg.textContent = 'Gravação finalizada. Clique em \"Salvar no Google Drive\".';
-            audioBlobGlobal = mp3Blob;
-          }).catch((err) => {
-            console.error(\"Erro na conversão/processamento:\", err);
-            statusMsg.textContent = 'Falha na conversão para MP3.';
-            audioBlobGlobal = audioBlob;
-          });
-        };
-        mediaRecorder.start();
-      }).catch(err => {
-        statusMsg.textContent = 'Erro ao acessar o microfone: ' + err.message;
-        alert('Erro ao acessar o microfone: ' + err.message);
-      });
-    }
-    function pausarGravacao() {
-      if (!mediaRecorder) return;
-      if (mediaRecorder.state === 'recording') {
-        mediaRecorder.pause();
-        btnPausar.textContent = \"▶️ Retomar\";
-        statusMsg.textContent = 'Gravação pausada.';
-      } else if (mediaRecorder.state === 'paused') {
-        mediaRecorder.resume();
-        btnPausar.textContent = \"⏸️ Pausar\";
-        statusMsg.textContent = 'Gravando...';
-      }
-    }
-    function pararGravacao() {
-      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-        btnGravar.disabled = false; btnPausar.disabled = true; btnPausar.textContent = \"⏸️ Pausar\"; btnParar.disabled = true;
-      }
-    }
-    function resetarGravador() {
-      btnGravar.disabled = false;
-      btnPausar.disabled = true;
-      btnPausar.textContent = \"⏸️ Pausar\";
-      btnParar.disabled = true;
-      audioPlayer.src = \"\";
-      audioPlayer.style.display = 'none';
-      btnUpload.style.display = 'none';
-      statusMsg.textContent = '';
-      audioBlobGlobal = null;
-    }
-
-      function fecharGravador() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-        mediaRecorder.stop();
-    }
-    modal.classList.remove('open');
-    resetarGravador();
-}
-
-    // ========= CONVERSÃO E UPLOAD =========
-    function convertToMp3WithProcessing(webmBlob) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = function () {
-          const arrayBuffer = this.result;
-          const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-          audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
-            // === PROCESSAMENTO DE RUÍDO ===
-            const offlineCtx = new OfflineAudioContext(
-              1, audioBuffer.length, audioBuffer.sampleRate);
-            let input;
-            if (audioBuffer.numberOfChannels > 1) {
-              const left = audioBuffer.getChannelData(0);
-              const right = audioBuffer.getChannelData(1);
-              const mono = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
-              const monoData = mono.getChannelData(0);
-              for (let i = 0; i < audioBuffer.length; i++) {
-                monoData[i] = 0.5 * (left[i] + right[i]);
-              }
-              input = offlineCtx.createBufferSource(); input.buffer = mono;
-            } else {
-              input = offlineCtx.createBufferSource(); input.buffer = audioBuffer;
-            }
-            const highpass = offlineCtx.createBiquadFilter();
-            highpass.type = \"highpass\"; highpass.frequency.value = 130;
-            const lowpass = offlineCtx.createBiquadFilter();
-            lowpass.type = \"lowpass\"; lowpass.frequency.value = 8000;
-            const gain = offlineCtx.createGain();
-            gain.gain.value = 2.5;
-            input.connect(highpass); highpass.connect(lowpass); lowpass.connect(gain); gain.connect(offlineCtx.destination);
-            input.start();
-            offlineCtx.startRendering().then(processedBuffer => {
-              const samples = processedBuffer.getChannelData(0);
-              const sampleRate = processedBuffer.sampleRate;
-              const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96);
-              const intSamples = new Int16Array(samples.length);
-              for (let i = 0; i < samples.length; i++) intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
-              const maxSamples = 1152;
-              let mp3Data = [];
-              for (let i = 0; i < intSamples.length; i += maxSamples) {
-                const sampleChunk = intSamples.subarray(i, i + maxSamples);
-                const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
-                if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
-              }
-              const endBuf = mp3Encoder.flush();
-              if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
-              const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
-              resolve(mp3Blob);
-            }).catch(reject);
-          }).catch(reject);
-        };
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(webmBlob);
-      });
-    }
-
-    function splitBlob(blob, partSize) {
-      const parts = [];
-      let offset = 0;
-      while (offset < blob.size) {
-        const end = Math.min(offset + partSize, blob.size);
-        parts.push(blob.slice(offset, end, blob.type));
-        offset = end;
-      }
-      return parts;
-    }
-    function getNextFileNumber(tipo) {
-      const key = 'contador_' + tipo;
-      let n = Number(localStorage.getItem(key)) || 1;
-      localStorage.setItem(key, n + 1);
-      return n;
-    }
-
-    async function salvarNoDriveResumable() {
-      if (!accessToken) { alert(\"Você precisa conectar com o Google Drive antes.\"); return; }
-      if (!audioBlobGlobal) { alert(\"Nenhum áudio para enviar.\"); return; }
-      statusMsg.textContent = \"Processando áudio para upload...\";
-      const partes = splitBlob(audioBlobGlobal, MAX_AUDIO_CHUNK);
-      for (let i = 0; i < partes.length; i++) {
-        const parte = partes[i], parteNum = i + 1;
-        statusMsg.textContent = `Enviando parte ${parteNum} de ${partes.length}...`;
-        const metadata = {
-          name: `audio_reuniao_${getNextFileNumber('audio')}_parte${parteNum}.mp3`,
-          mimeType: parte.type, parents: [PASTA_ATAS_ID]
-        };
-        const start = await fetch(
-          \"https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id\",
-          {
-            method: \"POST\",
-            headers: {
-              \"Authorization\": \"Bearer \" + accessToken,
-              \"Content-Type\": \"application/json; charset=UTF-8\",
-              \"X-Upload-Content-Type\": parte.type
-            },
-            body: JSON.stringify(metadata)
-          }
-        );
-        const uploadURL = start.headers.get(\"Location\");
-        if (!uploadURL) { statusMsg.textContent = \"Falha ao criar sessão para parte \" + parteNum; return; }
-        const put = await fetch(uploadURL, {
-          method: \"PUT\",
-          headers: {
-            \"Content-Type\": parte.type,
-            \"Content-Length\": parte.size,
-            \"Content-Range\": `bytes 0-${parte.size - 1}/${parte.size}`
-          },
-          body: parte
-        });
-        if (put.ok) {
-          const file = await put.json();
-          statusMsg.innerHTML += `<br>Parte ${parteNum} enviada! <a href=\"https://drive.google.com/file/d/${file.id}/view\" target=\"_blank\">Abrir</a>`;
-        } else {
-          statusMsg.textContent = \"Erro ao enviar parte \" + parteNum + \": \" +Ótimo direcionamento! Agora, aqui está **a adaptação completa para o botão “Gravar Áudio”** no seu layout novo, mantendo toda a funcionalidade robusta do gravador original, incluindo:
-
-- Modal de gravação de áudio
-- Conversão para MP3 com processamento e filtros
-- Fragmentação em partes de 23MB para upload
-- Upload resumable para Google Drive
-- Atualização dos botões/modal no layout novo
-
-Você só precisa substituir o conteúdo do seu HTML do canvas pelo código abaixo (não retire o restante dos cards; só substitua o modal de gravação, o script e o clique do card “Gravar Áudio”):
-
----
-
-```html
-<!-- ...seu layout do início permanece igual... -->
-  <!-- MODAL GRAVADOR DE ÁUDIO -->
-  <div class="modal-bg" id="modalGravador">
-    <div class="modal-main">
-      <button class="close-btn" onclick="toggle('modalGravador')">&times;</button>
-      <h3>Gravador de Áudio</h3>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
-        <button class="btn" id="btnGravar" onclick="iniciarGravacao()">⏺️ Gravar</button>
-        <button class="btn" id="btnPausar" onclick="pausarGravacao()" disabled>⏸️ Pausar</button>
-        <button class="btn" id="btnParar" onclick="pararGravacao()" disabled>⏹️ Parar</button>
-      </div>
-      <audio id="audioPlayer" class="audio-player" controls style="display:none;width:100%;margin-top:10px"></audio>
-      <button class="btn" id="btnUpload" style="width:100%;display:none;" onclick="salvarNoDriveResumable()">Salvar no Google Drive</button>
-      <div id="statusMsg" class="status-msg"></div>
-    </div>
-  </div>
-<!-- ...outros modais/cards... -->
-
-<script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://apis.google.com/js/api.js" async defer></script>
 <script>
-const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
-const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
-const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
-const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
+  // Google Drive params
+  const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
+  const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
+  const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
+  const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+  const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
 
-let accessToken = '';
-let tokenClient = null;
+  let accessToken = '';
+  let tokenClient = null;
 
-window.onload = function() {
-  gapi.load('client', () => { gapi.client.init({apiKey: API_KEY}); });
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID, scope: SCOPES, callback: handleTokenResponse
-  });
+  // DOM elements refs
+  let btnGravar, btnPausar, btnParar, audioPlayer, btnUpload, statusMsg, modalGravador, btnCloseGravador;
+  let mediaRecorder, audioChunks = [], audioBlob, audioBlobGlobal = null;
 
-  document.getElementById('cardGravar').onclick = function() {
-    document.getElementById('modalGravador').classList.add('open');
-    resetarGravador();
-  };
-};
-
-function toggle(id) {
-  document.getElementById(id).classList.toggle('open');
-  if (id === 'modalGravador') resetarGravador();
-}
-
-// ======= GRAVADOR =======
-let mediaRecorder, audioChunks = [], audioBlob;
-
-let audioBlobGlobal = null;
-
-function iniciarGravacao() {
-  if (!navigator.mediaDevices || !window.MediaRecorder) {
-    alert("Seu navegador não suporta gravação de áudio!"); return;
-  }
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-    mediaRecorder.onstart = () => {
-      btnGravar.disabled = true; btnPausar.disabled = false; btnParar.disabled = false;
-      statusMsg.textContent = 'Gravando...';
-      audioPlayer.style.display = 'none';
-      btnUpload.style.display = 'none';
-    };
-    mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
-    mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando...'; };
-    mediaRecorder.onstop = () => {
-      audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-      convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
-        audioPlayer.src = URL.createObjectURL(mp3Blob);
-        audioPlayer.style.display = 'block';
-        btnUpload.style.display = 'block';
-        statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
-        audioBlobGlobal = mp3Blob;
-      }).catch((err) => {
-        console.error("Erro na conversão/processamento:", err);
-        statusMsg.textContent = 'Falha na conversão para MP3.';
-        audioBlobGlobal = audioBlob;
-      });
-    };
-    mediaRecorder.start();
-  }).catch(err => {
-    statusMsg.textContent = 'Erro ao acessar o microfone: ' + err.message;
-    alert('Erro ao acessar o microfone: ' + err.message);
-  });
-}
-function pausarGravacao() {
-  if (!mediaRecorder) return;
-  if (mediaRecorder.state === 'recording') {
-    mediaRecorder.pause();
-    btnPausar.textContent = "▶️ Retomar";
-    statusMsg.textContent = 'Gravação pausada.';
-  } else if (mediaRecorder.state === 'paused') {
-    mediaRecorder.resume();
-    btnPausar.textContent = "⏸️ Pausar";
-    statusMsg.textContent = 'Gravando...';
-  }
-}
-function pararGravacao() {
-  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-    btnGravar.disabled = false; btnPausar.disabled = true; btnPausar.textContent = "⏸️ Pausar"; btnParar.disabled = true;
-  }
-}
-function resetarGravador() {
-  btnGravar.disabled = false;
-  btnPausar.disabled = true;
-  btnPausar.textContent = "⏸️ Pausar";
-  btnParar.disabled = true;
-  audioPlayer.src = "";
-  audioPlayer.style.display = 'none';
-  btnUpload.style.display = 'none';
-  statusMsg.textContent = '';
-  audioBlobGlobal = null;
-}
-
-function convertToMp3WithProcessing(webmBlob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = function () {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      audioContext.decodeAudioData(reader.result).then(audioBuffer => {
-        const offlineCtx = new OfflineAudioContext(1, audioBuffer.length, audioBuffer.sampleRate);
-        let input;
-        if (audioBuffer.numberOfChannels > 1) {
-          const left = audioBuffer.getChannelData(0);
-          const right = audioBuffer.getChannelData(1);
-          const mono = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
-          const monoData = mono.getChannelData(0);
-          for (let i = 0; i < audioBuffer.length; i++) {
-            monoData[i] = 0.5 * (left[i] + right[i]);
-          }
-          input = offlineCtx.createBufferSource(); input.buffer = mono;
-        } else {
-          input = offlineCtx.createBufferSource(); input.buffer = audioBuffer;
-        }
-        const highpass = offlineCtx.createBiquadFilter();
-        highpass.type = "highpass"; highpass.frequency.value = 130;
-        const lowpass = offlineCtx.createBiquadFilter();
-        lowpass.type = "lowpass"; lowpass.frequency.value = 8000;
-        const gain = offlineCtx.createGain();
-        gain.gain.value = 2.5;
-        input.connect(highpass); highpass.connect(lowpass); lowpass.connect(gain); gain.connect(offlineCtx.destination);
-        input.start();
-        offlineCtx.startRendering().then(processedBuffer => {
-          const samples = processedBuffer.getChannelData(0);
-          const sampleRate = processedBuffer.sampleRate;
-          const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96);
-          const intSamples = new Int16Array(samples.length);
-          for (let i = 0; i < samples.length; i++) intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
-          const maxSamples = 1152;
-          let mp3Data = [];
-          for (let i = 0; i < intSamples.length; i += maxSamples) {
-            const sampleChunk = intSamples.subarray(i, i + maxSamples);
-            const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
-            if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
-          }
-          const endBuf = mp3Encoder.flush();
-          if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
-          const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
-          resolve(mp3Blob);
-        }).catch(reject);
-      }).catch(reject);
-    };
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(webmBlob);
-  });
-}
-function splitBlob(blob, partSize) {
-  const parts = [];
-  let offset = 0;
-  while (offset < blob.size) {
-    const end = Math.min(offset + partSize, blob.size);
-    parts.push(blob.slice(offset, end, blob.type));
-    offset = end;
-  }
-  return parts;
-}
-function getNextFileNumber(tipo) {
-  const key = 'contador_' + tipo;
-  let n = Number(localStorage.getItem(key)) || 1;
-  localStorage.setItem(key, n + 1);
-  return n;
-}
-
-async function salvarNoDriveResumable() {
-  if (!accessToken) { alert("Você precisa conectar com o Google Drive antes."); return; }
-  if (!audioBlobGlobal) { alert("Nenhum áudio para enviar."); return; }
-  statusMsg.textContent = "Processando áudio para upload...";
-  const partes = splitBlob(audioBlobGlobal, MAX_AUDIO_CHUNK);
-  for (let i = 0; i < partes.length; i++) {
-    const parte = partes[i], parteNum = i + 1;
-    statusMsg.textContent = `Enviando parte ${parteNum} de ${partes.length}...`;
-    const metadata = {
-      name: `audio_reuniao_${getNextFileNumber('audio')}_parte${parteNum}.mp3`,
-      mimeType: parte.type, parents: [PASTA_ATAS_ID]
-    };
-    const start = await fetch(
-      "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
-      {
-        method: "POST",
-        headers: {
-          "Authorization": "Bearer " + accessToken,
-          "Content-Type": "application/json; charset=UTF-8",
-          "X-Upload-Content-Type": parte.type
-        },
-        body: JSON.stringify(metadata)
-      }
-    );
-    const uploadURL = start.headers.get("Location");
-    if (!uploadURL) { statusMsg.textContent = "Falha ao criar sessão para parte " + parteNum; return; }
-    const put = await fetch(uploadURL, {
-      method: "PUT",
-      headers: {
-        "Content-Type": parte.type,
-        "Content-Length": parte.size,
-        "Content-Range": `bytes 0-${parte.size - 1}/${parte.size}`
-      },
-      body: parte
+  window.onload = function() {
+    gapi.load('client', () => { gapi.client.init({apiKey: API_KEY}); });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID, scope: SCOPES, callback: ()=>{}
     });
-    if (put.ok) {
-      const file = await put.json();
-      statusMsg.innerHTML += `<br>Parte ${parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
-    } else {
-      statusMsg.textContent = "Erro ao enviar parte " + parteNum + ": " + put.status;
+
+    btnGravar        = document.getElementById('btnGravar');
+    btnPausar        = document.getElementById('btnPausar');
+    btnParar         = document.getElementById('btnParar');
+    audioPlayer      = document.getElementById('audioPlayer');
+    btnUpload        = document.getElementById('btnUpload');
+    statusMsg        = document.getElementById('statusMsg');
+    modalGravador    = document.getElementById('modalGravador');
+    btnCloseGravador = document.getElementById('btnCloseGravador');
+
+    document.getElementById('cardGravar').onclick = abrirGravador;
+    btnCloseGravador.onclick = fecharGravador;
+    btnGravar.onclick  = iniciarGravacao;
+    btnPausar.onclick  = pausarGravacao;
+    btnParar.onclick   = pararGravacao;
+    btnUpload.onclick  = salvarNoDriveResumable;
+  };
+
+  function abrirGravador() {
+    modalGravador.classList.add('open');
+    resetarGravador();
+  }
+  function fecharGravador() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+    modalGravador.classList.remove('open');
+    resetarGravador();
+  }
+
+  function iniciarGravacao() {
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      alert("Seu navegador não suporta gravação de áudio!");
       return;
     }
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstart = () => {
+        btnGravar.disabled = true; btnPausar.disabled = false; btnParar.disabled = false;
+        statusMsg.textContent = 'Gravando...';
+        audioPlayer.style.display = 'none';
+        btnUpload.style.display = 'none';
+      };
+      mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
+      mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando...'; };
+      mediaRecorder.onstop = () => {
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
+          audioPlayer.src = URL.createObjectURL(mp3Blob);
+          audioPlayer.style.display = 'block';
+          btnUpload.style.display = 'block';
+          statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
+          audioBlobGlobal = mp3Blob;
+        }).catch((err) => {
+          console.error("Erro na conversão/processamento:", err);
+          statusMsg.textContent = 'Falha na conversão para MP3.';
+          audioBlobGlobal = audioBlob;
+        });
+      };
+      mediaRecorder.start();
+    }).catch(err => {
+      statusMsg.textContent = 'Erro ao acessar o microfone: ' + err.message;
+      alert('Erro ao acessar o microfone: ' + err.message);
+    });
   }
-  statusMsg.innerHTML += "<br>Upload concluído! Todas as partes foram enviadas.";
-}
+  function pausarGravacao() {
+    if (!mediaRecorder) return;
+    if (mediaRecorder.state === 'recording') {
+      mediaRecorder.pause();
+      btnPausar.textContent = "▶️ Retomar";
+      statusMsg.textContent = 'Gravação pausada.';
+    } else if (mediaRecorder.state === 'paused') {
+      mediaRecorder.resume();
+      btnPausar.textContent = "⏸️ Pausar";
+      statusMsg.textContent = 'Gravando...';
+    }
+  }
+  function pararGravacao() {
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      btnGravar.disabled = false; btnPausar.disabled = true; btnPausar.textContent = "⏸️ Pausar"; btnParar.disabled = true;
+    }
+  }
+  function resetarGravador() {
+    btnGravar.disabled = false;
+    btnPausar.disabled = true;
+    btnPausar.textContent = "⏸️ Pausar";
+    btnParar.disabled = true;
+    audioPlayer.src = "";
+    audioPlayer.style.display = 'none';
+    btnUpload.style.display = 'none';
+    statusMsg.textContent = '';
+    audioBlobGlobal = null;
+  }
 
-// ==== GOOGLE LOGIN ====
-function googleSignIn() {
-  tokenClient.requestAccessToken();
-}
-function handleTokenResponse(tokenResponse) {
-  if (tokenResponse && tokenResponse.access_token) {
-    accessToken = tokenResponse.access_token;
-    // Exiba status do login, se quiser
+  function convertToMp3WithProcessing(webmBlob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = function () {
+        const arrayBuffer = this.result;
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
+          const offlineCtx = new OfflineAudioContext(1, audioBuffer.length, audioBuffer.sampleRate);
+          let input;
+          if (audioBuffer.numberOfChannels > 1) {
+            const left = audioBuffer.getChannelData(0);
+            const right = audioBuffer.getChannelData(1);
+            const mono = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
+            const monoData = mono.getChannelData(0);
+            for (let i = 0; i < audioBuffer.length; i++) {
+              monoData[i] = 0.5 * (left[i] + right[i]);
+            }
+            input = offlineCtx.createBufferSource();
+            input.buffer = mono;
+          } else {
+            input = offlineCtx.createBufferSource();
+            input.buffer = audioBuffer;
+          }
+          const highpass = offlineCtx.createBiquadFilter();
+          highpass.type = "highpass";
+          highpass.frequency.value = 130;
+          const lowpass = offlineCtx.createBiquadFilter();
+          lowpass.type = "lowpass";
+          lowpass.frequency.value = 8000;
+          const gain = offlineCtx.createGain();
+          gain.gain.value = 2.5;
+          input.connect(highpass);
+          highpass.connect(lowpass);
+          lowpass.connect(gain);
+          gain.connect(offlineCtx.destination);
+          input.start();
+          offlineCtx.startRendering().then(processedBuffer => {
+            const samples = processedBuffer.getChannelData(0);
+            const sampleRate = processedBuffer.sampleRate;
+            const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96);
+            const intSamples = new Int16Array(samples.length);
+            for (let i = 0; i < samples.length; i++) {
+              intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
+            }
+            const maxSamples = 1152;
+            let mp3Data = [];
+            for (let i = 0; i < intSamples.length; i += maxSamples) {
+              const sampleChunk = intSamples.subarray(i, i + maxSamples);
+              const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
+              if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
+            }
+            const endBuf = mp3Encoder.flush();
+            if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
+            const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
+            resolve(mp3Blob);
+          }).catch(reject);
+        }).catch(reject);
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(webmBlob);
+    });
   }
-}
+
+  function splitBlob(blob, partSize) {
+    const parts = [];
+    let offset = 0;
+    while (offset < blob.size) {
+      const end = Math.min(offset + partSize, blob.size);
+      parts.push(blob.slice(offset, end, blob.type));
+      offset = end;
+    }
+    return parts;
+  }
+  function getNextFileNumber(tipo) {
+    const key = 'contador_' + tipo;
+    let n = Number(localStorage.getItem(key)) || 1;
+    localStorage.setItem(key, n + 1);
+    return n;
+  }
+
+  async function salvarNoDriveResumable() {
+    if (!accessToken) { alert("Você precisa conectar com o Google Drive antes."); return; }
+    if (!audioBlobGlobal) { alert("Nenhum áudio para enviar."); return; }
+    statusMsg.textContent = "Processando áudio para upload...";
+    const partes = splitBlob(audioBlobGlobal, MAX_AUDIO_CHUNK);
+    for (let i = 0; i < partes.length; i++) {
+      const parte = partes[i], parteNum = i + 1;
+      statusMsg.textContent = `Enviando parte ${parteNum} de ${partes.length}...`;
+      const metadata = {
+        name: `audio_reuniao_${getNextFileNumber('audio')}_parte${parteNum}.mp3`,
+        mimeType: parte.type, parents: [PASTA_ATAS_ID]
+      };
+      const start = await fetch(
+        "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
+        {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + accessToken,
+            "Content-Type": "application/json; charset=UTF-8",
+            "X-Upload-Content-Type": parte.type
+          },
+          body: JSON.stringify(metadata)
+        }
+      );
+      const uploadURL = start.headers.get("Location");
+      if (!uploadURL) { statusMsg.textContent = "Falha ao criar sessão para parte " + parteNum; return; }
+      const put = await fetch(uploadURL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": parte.type,
+          "Content-Length": parte.size,
+          "Content-Range": `bytes 0-${parte.size - 1}/${parte.size}`
+        },
+        body: parte
+      });
+      if (put.ok) {
+        const file = await put.json();
+        statusMsg.innerHTML += `<br>Parte ${parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
+      } else {
+        statusMsg.textContent = "Erro ao enviar parte " + parteNum + ": " + put.status;
+        return;
+      }
+    }
+    statusMsg.innerHTML += "<br>Upload concluído! Todas as partes foram enviadas.";
+  }
 </script>
+</body>
+</html>
