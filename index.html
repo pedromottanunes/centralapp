@@ -65,6 +65,14 @@
   </div>
 
   <script>
+    function fecharGravador() {
+  if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state !== 'inactive') {
+    mediaRecorder.stop();
+  }
+  document.getElementById('modalGravador').classList.remove('open');
+  resetarGravador && resetarGravador();
+}
+
     // Parâmetros do Drive (troque se necessário!)
     const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
     const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
@@ -90,15 +98,7 @@
       document.getElementById('modalGravador').classList.add('open');
       resetarGravador();
     }
-    function fecharGravador() {
-  // Garante que para a gravação (se houver)
-  if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state !== 'inactive') {
-    mediaRecorder.stop();
-  }
-  document.getElementById('modalGravador').classList.remove('open');
-  // Limpa a interface do modal (opcional)
-  resetarGravador && resetarGravador();
-}
+  
 
 
 
