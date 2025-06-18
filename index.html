@@ -134,6 +134,10 @@ tokenClient = google.accounts.oauth2.initTokenClient({
   callback: handleTokenResponse
 });
 
+    // Tenta fazer login automático, sem pedir nada ao usuário
+tokenClient.requestAccessToken({ prompt: '' });
+    
+
       // LOGIN PRO GOOGLE
 document.getElementById('logoArea').onclick = function() {
   tokenClient.requestAccessToken();
