@@ -67,6 +67,7 @@
 
       
       <h3>Gravador de Áudio</h3>
+      <canvas id="audioVisualizer" width="280" height="46" style="margin:12px 0 10px 0; display:none; background:#f4f8fc; border-radius:14px;"></canvas>
            
       <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
         <button class="btn" id="btnGravar" type="button">⏺️ Gravar</button>
@@ -103,7 +104,8 @@
 <script>
   
   // Google Drive params
-  const MAX_AUDIO_CHUNK = 23 * 1024 * 1024; // 23 MB
+const TAMANHO_MAX_PARTE = 23 * 1024 * 1024; // 23 MB em bytes
+
 const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
@@ -124,6 +126,10 @@ const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
   let btnGravar, btnPausar, btnParar, audioPlayer, btnUpload, statusMsg, modalGravador, btnCloseGravador;
   let mediaRecorder, audioChunks = [], audioBlob, audioBlobGlobal = null;
   let modalLerProjeto, btnCloseLerProjeto, inputPdf, pdfFileName, btnUploadPdf, statusMsgPdf, pdfBlobGlobal = null;
+let parteAtual = 1;
+let tamanhoAcumulado = 0;
+let gravandoAutomatico = false;
+let audioContext = null, analyser = null, source = null, visualizerAnimationId = null;
 
 
   window.onload = function() {
@@ -223,26 +229,47 @@ inputPdf.onchange = function() {
     if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
     modalGravador.classList.remove('open');
     resetarGravador();
+    pararVisualizador();
   }
 
-  function iniciarGravacao() {
-    if (!navigator.mediaDevices || !window.MediaRecorder) {
-      alert("Seu navegador não suporta gravação de áudio!");
-      return;
-    }
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-      mediaRecorder = new MediaRecorder(stream);
-      audioChunks = [];
-      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
-      mediaRecorder.onstart = () => {
-        btnGravar.disabled = true; btnPausar.disabled = false; btnParar.disabled = false;
-        statusMsg.textContent = 'Gravando...';
-        audioPlayer.style.display = 'none';
-        btnUpload.style.display = 'none';
-      };
-      mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
-      mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando...'; };
-      mediaRecorder.onstop = () => {
+ function iniciarGravacao() {
+  if (!navigator.mediaDevices || !window.MediaRecorder) {
+    alert("Seu navegador não suporta gravação de áudio!");
+    return;
+  }
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    mediaRecorder = new MediaRecorder(stream);
+    iniciarVisualizador(stream);
+    audioChunks = [];
+    tamanhoAcumulado = 0;
+    gravandoAutomatico = true;
+    parteAtual = 1;
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) {
+        audioChunks.push(e.data);
+        tamanhoAcumulado += e.data.size;
+
+        // Verifica se atingiu o tamanho máximo (24 MB)
+        if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
+          gravandoAutomatico = true; // Sinaliza que é auto
+          mediaRecorder.stop(); // Vai disparar o onstop abaixo!
+        }
+      }
+    };
+
+    mediaRecorder.onstart = () => {
+      btnGravar.disabled = true; btnPausar.disabled = false; btnParar.disabled = false;
+      statusMsg.textContent = 'Gravando... (Parte ' + parteAtual + ')';
+      audioPlayer.style.display = 'none';
+      btnUpload.style.display = 'none';
+    };
+    mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
+    mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando... (Parte ' + parteAtual + ')'; };
+
+    mediaRecorder.onstop = () => {
+      if (!gravandoAutomatico) {
+        // Parada manual pelo usuário (clicou em Parar)
         audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
         convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
           audioPlayer.src = URL.createObjectURL(mp3Blob);
@@ -255,13 +282,34 @@ inputPdf.onchange = function() {
           statusMsg.textContent = 'Falha na conversão para MP3.';
           audioBlobGlobal = audioBlob;
         });
-      };
-      mediaRecorder.start();
-    }).catch(err => {
-      statusMsg.textContent = 'Erro ao acessar o microfone: ' + err.message;
-      alert('Erro ao acessar o microfone: ' + err.message);
-    });
-  }
+      } else {
+        // Parada automática (atingiu 24 MB)
+        gravandoAutomatico = false; // Previne loop
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
+          statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
+          audioBlobGlobal = mp3Blob;
+          salvarNoDriveResumableParte(parteAtual, mp3Blob).then(() => {
+            parteAtual++;
+            // Limpa e inicia nova parte
+            audioChunks = [];
+            tamanhoAcumulado = 0;
+            iniciarGravacao(); // Começa uma nova gravação!
+          });
+        }).catch((err) => {
+          console.error("Erro na conversão/processamento:", err);
+          statusMsg.textContent = 'Falha na conversão automática para MP3.';
+        });
+      }
+    };
+
+    mediaRecorder.start();
+  }).catch(err => {
+    statusMsg.textContent = 'Erro ao acessar o microfone: ' + err.message;
+    alert('Erro ao acessar o microfone: ' + err.message);
+  });
+}
+
   function pausarGravacao() {
     if (!mediaRecorder) return;
     if (mediaRecorder.state === 'recording') {
@@ -274,12 +322,14 @@ inputPdf.onchange = function() {
       statusMsg.textContent = 'Gravando...';
     }
   }
-  function pararGravacao() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-      mediaRecorder.stop();
-      btnGravar.disabled = false; btnPausar.disabled = true; btnPausar.textContent = "⏸️ Pausar"; btnParar.disabled = true;
-    }
+ function pararGravacao() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    gravandoAutomatico = false;
+    mediaRecorder.stop();
+    statusMsg.textContent = 'Aguarde: preparando o arquivo de áudio. Não feche esta janela!';
   }
+}
+
   function resetarGravador() {
     btnGravar.disabled = false;
     btnPausar.disabled = true;
@@ -604,6 +654,50 @@ function resetarLerProjeto() {
   pdfBlobGlobal = null;
 }
 
+
+
+
+  function iniciarVisualizador(stream) {
+  const canvas = document.getElementById('audioVisualizer');
+  const canvasCtx = canvas.getContext('2d');
+  canvas.style.display = 'block';
+
+  audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = audioContext.createAnalyser();
+  analyser.fftSize = 64; // Menos barras = mais leve
+
+  source = audioContext.createMediaStreamSource(stream);
+  source.connect(analyser);
+
+  function desenhar() {
+    visualizerAnimationId = requestAnimationFrame(desenhar);
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    analyser.getByteFrequencyData(dataArray);
+
+    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const barWidth = (canvas.width / bufferLength) - 2;
+    for (let i = 0; i < bufferLength; i++) {
+      const barHeight = dataArray[i] / 2;
+      canvasCtx.fillStyle = '#3576f6';
+      canvasCtx.fillRect(i * (barWidth + 2), canvas.height - barHeight, barWidth, barHeight);
+    }
+  }
+  desenhar();
+}
+
+function pararVisualizador() {
+  const canvas = document.getElementById('audioVisualizer');
+  if (visualizerAnimationId) cancelAnimationFrame(visualizerAnimationId);
+  canvas.style.display = 'none';
+  if (audioContext) {
+    audioContext.close();
+    audioContext = null;
+  }
+  analyser = null;
+  source = null;
+}
 
   
 
