@@ -49,8 +49,8 @@
       
       <div class="settings-card"><div class="icon">🎵</div><div class="label">Meus Áudios</div></div>
       <div class="settings-card"><div class="icon">📂</div><div class="label">Meus Projetos</div></div>
-      <div class="settings-card"><div class="icon">🔑</div><div class="label">Login Google</div></div>
-      <div class="settings-card no-func"><div class="icon">⚙️</div><div class="label">Configuração</div></div>
+      <!--<div class="settings-card"><div class="icon">🔑</div><div class="label">Login Google</div></div>-->
+      <!--<div class="settings-card no-func"><div class="icon">⚙️</div><div class="label">Configuração</div></div>-->
     </div>
   </div>
   <!-- MODAL GRAVADOR DE ÁUDIO -->
@@ -59,7 +59,7 @@
       <button class="close-btn" id="btnCloseGravador" type="button">&times;</button>
 
 <!-- Ícone de pastinha para abrir modal de arquivos de atas -->
-<button id="btnPastinhaReunioes" class="btn" style="background:#f3f7fc; color:#3576f6; border:1.5px solid #bcd4f6; font-size:1.1rem; width:160px; margin-bottom:8px; display:flex; align-items:center; gap:8px;"
+<button id="btnPastinhaBrutos" class="btn" style="background:#f3f7fc; color:#3576f6; border:1.5px solid #bcd4f6; font-size:1.1rem; width:160px; margin-bottom:8px; display:flex; align-items:center; gap:8px;"
   type="button"
   onclick="abrirPastasReunioes()">
   <img src="https://drive.google.com/thumbnail?id=1DQYY3oe21_PFXT1Sq10ZZX_-mEyOiFsJ" alt="Pastinha" style="width:22px;height:22px;"> Arquivos
@@ -106,6 +106,9 @@
 <script>
   let loteIdAtual = null;
 let paradaSolicitadaPeloUsuario = false;
+let btnPastinhaBrutos = null;
+let modalBrutos = null;
+let btnCloseBrutos = null;
 
   
   // Google Drive params
@@ -154,7 +157,10 @@ document.getElementById('logoArea').onclick = function() {
   tokenClient.requestAccessToken();
 };
 
-   
+   btnPastinhaBrutos = document.getElementById('btnPastinhaBrutos');
+modalBrutos = document.getElementById('modalBrutos');
+btnCloseBrutos = document.getElementById('btnCloseBrutos');
+
     btnGravar        = document.getElementById('btnGravar');
     btnPausar        = document.getElementById('btnPausar');
     btnParar         = document.getElementById('btnParar');
@@ -170,13 +176,15 @@ document.getElementById('logoArea').onclick = function() {
   modalPastaReunioes    = document.getElementById('modalPastaReunioes');
   btnClosePastaReunioes = document.getElementById('btnClosePastaReunioes');
   btnClosePastaReunioes.onclick = fecharPastasReunioes;
-    
+    btnPastinhaBrutos.onclick = abrirModalBrutos;
+btnCloseBrutos.onclick = fecharModalBrutos;
+
     document.getElementById('cardGravar').onclick = abrirGravador;
     btnCloseGravador.onclick = fecharGravador;
     btnGravar.onclick  = iniciarGravacao;
     btnPausar.onclick  = pausarGravacao;
     btnParar.onclick   = pararGravacao;
-
+    
 btnUpload.onclick = async function() {
   statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
 
@@ -223,10 +231,52 @@ inputPdf.onchange = function() {
   }
 };
 
-
-
   };
 
+
+
+  function abrirModalBrutos() {
+  modalBrutos.classList.add('open');
+  listarArquivosBrutos();
+}
+
+function fecharModalBrutos() {
+  modalBrutos.classList.remove('open');
+  document.getElementById('listaArquivosBrutos').innerHTML = "";
+  document.getElementById('statusMsgBrutos').textContent = "";
+}
+
+async function listarArquivosBrutos() {
+  if (!accessToken) {
+    document.getElementById('statusMsgBrutos').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgBrutos').textContent = 'Carregando arquivos...';
+  try {
+    // Só busca arquivos da pasta de áudios brutos
+    const pastaId = PASTA_ATAS_ID;
+    const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType contains 'audio/'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        🎵 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosBrutos').innerHTML = html;
+    document.getElementById('statusMsgBrutos').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgBrutos').textContent = 'Erro ao buscar arquivos.';
+  }
+}
+
+
+  
 
 
 
@@ -794,5 +844,39 @@ function pararVisualizador() {
   </div>
 </div>
 
-</body>
+
+<div class="modal-bg" id="modalBrutos">
+  <div class="modal-main" style="min-width:350px;max-width:98vw;">
+    <button class="close-btn" id="btnCloseBrutos" type="button">&times;</button>
+    <h3>Áudios Brutos</h3>
+    <div id="listaArquivosBrutos" style="max-height:320px; overflow:auto;"></div>
+    <div id="statusMsgBrutos" class="status-msg"></div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  </body>
+
+
+
+  
 </html>
