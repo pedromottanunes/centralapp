@@ -134,12 +134,12 @@ const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleuser
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-const PASTA_ATAS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atasrelatórios de reuniões
-const PASTA_RELATORIOS_ID = '1fIPyHT9l31m-LWDRy4rOVyFCuGF7nc9m'; // ID da pasta de relatórios de projetos
+const PASTA_AUDIOS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atas relatórios de reuniões
+const PASTA_PDF_ID = '1fIPyHT9l31m-LWDRy4rOVyFCuGF7nc9m'; // ID da pasta de relatórios de projetos
 
 // Adicione as IDs das pastas de arquivos automatizados:
-const PASTA_ATAS_AUTOMATIZADAS_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
-const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
+const PASTA_ATASREUNIOES_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
+const PASTA_RELATORIOS_DOS_PDFS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
  
 
   let accessToken = '';
@@ -272,7 +272,7 @@ async function listarArquivosBrutos() {
   document.getElementById('statusMsgBrutos').textContent = 'Carregando arquivos...';
   try {
     // Só busca arquivos da pasta de áudios brutos
-    const pastaId = PASTA_ATAS_ID;
+    const pastaId = PASTA_AUDIOS_ID;
     const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType contains 'audio/'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
     const data = await resp.json();
@@ -313,7 +313,7 @@ async function listarArquivosPdfs() {
   document.getElementById('statusMsgPdfs').textContent = 'Carregando arquivos...';
 
   // TROQUE AQUI PELO ID DA SUA PASTA DE PDFs:
-  const pastaId = PASTA_RELATORIOS_ID; // Substitua por outro se quiser
+  const pastaId = PASTA_PDF_ID; // Substitua por outro se quiser
 
   const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType='application/pdf'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
   try {
@@ -589,7 +589,7 @@ function pararGravacao() {
   const metadata = {
     name: nome,
     mimeType: mp3Blob.type,
-    parents: [PASTA_ATAS_ID]
+    parents: [PASTA_AUDIOS_ID]
   };
 
   try {
@@ -679,8 +679,8 @@ function fecharPastasReunioes() {
   try {
     // Busca nas duas pastas
     const [arquivosUsuario, arquivosAutomatizados] = await Promise.all([
-      buscarArquivos(PASTA_ATAS_ID),
-      buscarArquivos(PASTA_ATAS_AUTOMATIZADAS_ID)
+      buscarArquivos(PASTA_AUDIOS_ID),
+      buscarArquivos(PASTA_ATASREUNIOES_ID)
     ]);
 
     // Lista de arquivos do usuário (áudio bruto)
@@ -759,7 +759,7 @@ async function salvarPdfNoDrive() {
   const metadata = {
     name: pdfBlobGlobal.name,
     mimeType: pdfBlobGlobal.type,
-    parents: [PASTA_RELATORIOS_ID]
+    parents: [PASTA_PDF_ID]
   };
   const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
