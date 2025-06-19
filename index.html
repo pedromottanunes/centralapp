@@ -47,8 +47,9 @@
 <div class="settings-card" id="cardEnviarPdf"><div class="icon">📑</div><div class="label">Enviar PDF</div></div>
 
       
-      <div class="settings-card"><div class="icon">🎵</div><div class="label">Meus Áudios</div></div>
-      <div class="settings-card"><div class="icon">📂</div><div class="label">Meus Projetos</div></div>
+      <div class="settings-card" id="cardAtas"><div class="icon">🧠</div><div class="label">Atas de Reuniões</div></div>
+<div class="settings-card" id="cardRelatorios"><div class="icon">📄</div><div class="label">Relatórios</div></div>
+
       <!--<div class="settings-card"><div class="icon">🔑</div><div class="label">Login Google</div></div>-->
       <!--<div class="settings-card no-func"><div class="icon">⚙️</div><div class="label">Configuração</div></div>-->
     </div>
@@ -113,6 +114,25 @@
 </div>
 
 
+<!-- MODAL ATAS DE REUNIÕES (apenas atas processadas) -->
+<div class="modal-bg" id="modalAtas">
+  <div class="modal-main" style="min-width:350px;max-width:98vw;">
+    <button class="close-btn" id="btnCloseAtas" type="button">&times;</button>
+    <h3>Atas de Reuniões</h3>
+    <div id="listaArquivosAtas" style="max-height:320px; overflow:auto;"></div>
+    <div id="statusMsgAtas" class="status-msg"></div>
+  </div>
+</div>
+
+<!-- MODAL RELATÓRIOS -->
+<div class="modal-bg" id="modalRelatorios">
+  <div class="modal-main" style="min-width:350px;max-width:98vw;">
+    <button class="close-btn" id="btnCloseRelatorios" type="button">&times;</button>
+    <h3>Relatórios</h3>
+    <div id="listaArquivosRelatorios" style="max-height:320px; overflow:auto;"></div>
+    <div id="statusMsgRelatorios" class="status-msg"></div>
+  </div>
+</div>
 
   
 <script>
@@ -124,6 +144,9 @@ let btnCloseBrutos = null;
   let btnPastinhaPdfs = null;
 let modalPdfs = null;
 let btnClosePdfs = null;
+  let btnAtas = null, modalAtas = null, btnCloseAtas = null;
+let btnRelatorios = null, modalRelatorios = null, btnCloseRelatorios = null;
+
 
 
   
@@ -185,6 +208,17 @@ btnCloseBrutos = document.getElementById('btnCloseBrutos');
     modalGravador    = document.getElementById('modalGravador');
     btnCloseGravador = document.getElementById('btnCloseGravador');
     profileLogo  = document.getElementById('profileLogo');
+btnAtas = document.getElementById('cardAtas');
+modalAtas = document.getElementById('modalAtas');
+btnCloseAtas = document.getElementById('btnCloseAtas');
+btnAtas.onclick = abrirModalAtas;
+btnCloseAtas.onclick = fecharModalAtas;
+
+btnRelatorios = document.getElementById('cardRelatorios');
+modalRelatorios = document.getElementById('modalRelatorios');
+btnCloseRelatorios = document.getElementById('btnCloseRelatorios');
+btnRelatorios.onclick = abrirModalRelatorios;
+btnCloseRelatorios.onclick = fecharModalRelatorios;
 
 
       // Elementos do modal das pastas de atas de reuniões
@@ -336,7 +370,81 @@ async function listarArquivosPdfs() {
   }
 }
   
+function abrirModalAtas() {
+  modalAtas.classList.add('open');
+  listarArquivosAtas();
+}
+function fecharModalAtas() {
+  modalAtas.classList.remove('open');
+  document.getElementById('listaArquivosAtas').innerHTML = "";
+  document.getElementById('statusMsgAtas').textContent = "";
+}
+async function listarArquivosAtas() {
+  if (!accessToken) {
+    document.getElementById('statusMsgAtas').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgAtas').textContent = 'Carregando atas...';
 
+  const pastaId = PASTA_ATASREUNIOES_ID; // Atas processadas
+  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+  try {
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        🧠 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosAtas').innerHTML = html;
+    document.getElementById('statusMsgAtas').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgAtas').textContent = 'Erro ao buscar atas.';
+  }
+}
+
+function abrirModalRelatorios() {
+  modalRelatorios.classList.add('open');
+  listarArquivosRelatorios();
+}
+function fecharModalRelatorios() {
+  modalRelatorios.classList.remove('open');
+  document.getElementById('listaArquivosRelatorios').innerHTML = "";
+  document.getElementById('statusMsgRelatorios').textContent = "";
+}
+async function listarArquivosRelatorios() {
+  if (!accessToken) {
+    document.getElementById('statusMsgRelatorios').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgRelatorios').textContent = 'Carregando relatórios...';
+
+  const pastaId = PASTA_RELATORIOS_DOS_PDFS_ID; // Relatórios PDF
+  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+  try {
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        📄 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosRelatorios').innerHTML = html;
+    document.getElementById('statusMsgRelatorios').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgRelatorios').textContent = 'Erro ao buscar relatórios.';
+  }
+}
 
 
   function handleTokenResponse(tokenResponse) {
