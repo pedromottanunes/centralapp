@@ -105,6 +105,7 @@
   
 <script>
   let loteIdAtual = null;
+let paradaSolicitadaPeloUsuario = false;
 
   
   // Google Drive params
@@ -278,49 +279,50 @@ if (parteAtual === 1) {
     mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
     mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando... (Parte ' + parteAtual + ')'; };
 
-    mediaRecorder.onstop = () => {
-      if (!gravandoAutomatico) {
-        // Parada manual pelo usuário (clicou em Parar)
-        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
-          audioPlayer.src = URL.createObjectURL(mp3Blob);
-          audioPlayer.style.display = 'block';
-          btnUpload.style.display = 'block';
-          statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
-          audioBlobGlobal = mp3Blob;
-        }).catch((err) => {
-          console.error("Erro na conversão/processamento:", err);
-          statusMsg.textContent = 'Falha na conversão para MP3.';
-          audioBlobGlobal = audioBlob;
+   mediaRecorder.onstop = () => {
+  if (paradaSolicitadaPeloUsuario) {
+    // PARADA MANUAL: apenas processa e mostra para upload
+    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
+      audioPlayer.src = URL.createObjectURL(mp3Blob);
+      audioPlayer.style.display = 'block';
+      btnUpload.style.display = 'block';
+      statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
+      audioBlobGlobal = mp3Blob;
+      // Reset a flag para a próxima gravação
+      paradaSolicitadaPeloUsuario = false;
+    }).catch((err) => {
+      console.error("Erro na conversão/processamento:", err);
+      statusMsg.textContent = 'Falha na conversão para MP3.';
+      audioBlobGlobal = audioBlob;
+      paradaSolicitadaPeloUsuario = false;
+    });
+  } else {
+    // PARADA AUTOMÁTICA (atingiu o tamanho do chunk)
+    gravandoAutomatico = false; // Previne loop
+    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
+      statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
+      audioBlobGlobal = mp3Blob;
+      salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
+        .then(() => {
+          parteAtual++;
+          audioChunks = [];
+          tamanhoAcumulado = 0;
+          iniciarGravacao(); // Começa nova parte
+        })
+        .catch((err) => {
+          statusMsg.textContent = 'Erro no upload. Tente novamente. ' + err;
+          console.error(err);
+          // NÃO reinicia a gravação automaticamente em caso de erro
         });
-      } else {
-        // Parada automática (atingiu 24 MB)
-        gravandoAutomatico = false; // Previne loop
-        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-        convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
-          statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
-          audioBlobGlobal = mp3Blob;
-salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
-  .then(() => {
-    parteAtual++;
-    audioChunks = [];
-    tamanhoAcumulado = 0;
-    iniciarGravacao(); // Começa nova parte
-  })
- .catch((err) => {
-  statusMsg.textContent = 'Erro no upload. Tente novamente. ' + err;
-  console.error(err);
-  // NÃO reinicia a gravação automaticamente em caso de erro
-  // Aqui, o usuário decide se quer tentar gravar de novo
-});
+    }).catch((err) => {
+      console.error("Erro na conversão/processamento:", err);
+      statusMsg.textContent = 'Falha na conversão automática para MP3.';
+    });
+  }
+};
 
-
-        }).catch((err) => {
-          console.error("Erro na conversão/processamento:", err);
-          statusMsg.textContent = 'Falha na conversão automática para MP3.';
-        });
-      }
-    };
 
     mediaRecorder.start();
   }).catch(err => {
@@ -341,13 +343,15 @@ salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
       statusMsg.textContent = 'Gravando...';
     }
   }
- function pararGravacao() {
+function pararGravacao() {
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+    paradaSolicitadaPeloUsuario = true; // <-- Marcar que foi o usuário!
     gravandoAutomatico = false;
     mediaRecorder.stop();
     statusMsg.textContent = 'Aguarde: preparando o arquivo de áudio. Não feche esta janela!';
   }
 }
+
 
   function resetarGravador() {
     btnGravar.disabled = false;
