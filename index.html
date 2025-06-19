@@ -104,6 +104,8 @@
 
   
 <script>
+  let loteIdAtual = null;
+
   
   // Google Drive params
 const TAMANHO_MAX_PARTE = 23 * 1024 * 1024; // 23 MB em bytes
@@ -173,7 +175,9 @@ document.getElementById('logoArea').onclick = function() {
     btnGravar.onclick  = iniciarGravacao;
     btnPausar.onclick  = pausarGravacao;
     btnParar.onclick   = pararGravacao;
-    btnUpload.onclick  = salvarNoDriveResumable;
+btnUpload.onclick = function() {
+  salvarNoDriveResumableParte(parteAtual, audioBlobGlobal, true);
+};
 
 
 
@@ -235,6 +239,11 @@ inputPdf.onchange = function() {
   }
 
  function iniciarGravacao() {
+   // Gera um novo ID de lote SÓ quando começa uma nova gravação
+if (parteAtual === 1) {
+  loteIdAtual = gerarNovoLoteId();
+}
+
   if (!navigator.mediaDevices || !window.MediaRecorder) {
     alert("Seu navegador não suporta gravação de áudio!");
     return;
@@ -291,13 +300,18 @@ inputPdf.onchange = function() {
         convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
           statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
           audioBlobGlobal = mp3Blob;
-          salvarNoDriveResumableParte(parteAtual, mp3Blob).then(() => {
-            parteAtual++;
-            // Limpa e inicia nova parte
-            audioChunks = [];
-            tamanhoAcumulado = 0;
-            iniciarGravacao(); // Começa uma nova gravação!
-          });
+salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
+  .then(() => {
+    parteAtual++;
+    audioChunks = [];
+    tamanhoAcumulado = 0;
+    iniciarGravacao(); // Começa nova parte
+  })
+  .catch((err) => {
+    statusMsg.textContent = 'Erro no upload. Tente novamente.';
+    // Aqui pode reiniciar ou interromper, dependendo do fluxo desejado
+  });
+
         }).catch((err) => {
           console.error("Erro na conversão/processamento:", err);
           statusMsg.textContent = 'Falha na conversão automática para MP3.';
@@ -425,51 +439,80 @@ inputPdf.onchange = function() {
     return n;
   }
 
-  async function salvarNoDriveResumable() {
-    if (!accessToken) { alert("Você precisa conectar com o Google Drive antes."); return; }
-    if (!audioBlobGlobal) { alert("Nenhum áudio para enviar."); return; }
-    statusMsg.textContent = "Processando áudio para upload...";
-    const partes = splitBlob(audioBlobGlobal, MAX_AUDIO_CHUNK);
-    for (let i = 0; i < partes.length; i++) {
-      const parte = partes[i], parteNum = i + 1;
-      statusMsg.textContent = ` parte ${parteNum} de ${partes.length}...`;
-      const metadata = {
-        name: `audio_reuniao_${getNextFileNumber('audio')}_parte${parteNum}.mp3`,
-        mimeType: parte.type, parents: [PASTA_ATAS_ID]
-      };
-      const start = await fetch(
-        "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
-        {
-          method: "POST",
-          headers: {
-            "Authorization": "Bearer " + accessToken,
-            "Content-Type": "application/json; charset=UTF-8",
-            "X-Upload-Content-Type": parte.type
-          },
-          body: JSON.stringify(metadata)
-        }
-      );
-      const uploadURL = start.headers.get("Location");
-      if (!uploadURL) { statusMsg.textContent = "Falha ao criar sessão para parte " + parteNum; return; }
-      const put = await fetch(uploadURL, {
-        method: "PUT",
+  function gerarNovoLoteId() {
+  const key = 'contador_lote_audio';
+  let n = Number(localStorage.getItem(key)) || 1;
+  localStorage.setItem(key, n + 1);
+  return 'L' + n; // Exemplo: L1, L2, L3...
+}
+
+  async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, tentativas = 1) {
+  const nome = ehUltimaParte
+  ? `audio_lote_${loteIdAtual}_partefinal.mp3`
+  : `audio_lote_${loteIdAtual}_parte${parteNum}.mp3`;
+
+
+  const metadata = {
+    name: nome,
+    mimeType: mp3Blob.type,
+    parents: [PASTA_ATAS_ID]
+  };
+
+  try {
+    // Timeout control
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 2 * 60 * 1000); // 2 min
+
+    const start = await fetch(
+      "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
+      {
+        method: "POST",
         headers: {
-          "Content-Type": parte.type,
-          "Content-Length": parte.size,
-          "Content-Range": `bytes 0-${parte.size - 1}/${parte.size}`
+          "Authorization": "Bearer " + accessToken,
+          "Content-Type": "application/json; charset=UTF-8",
+          "X-Upload-Content-Type": mp3Blob.type
         },
-        body: parte
-      });
-      if (put.ok) {
-        const file = await put.json();
-        statusMsg.innerHTML += `<br>Parte ${parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
-      } else {
-        statusMsg.textContent = "Erro ao enviar parte " + parteNum + ": " + put.status;
-        return;
+        body: JSON.stringify(metadata),
+        signal: controller.signal
       }
+    );
+    clearTimeout(timeout);
+
+    const uploadURL = start.headers.get("Location");
+    if (!uploadURL) {
+      statusMsg.textContent = "Falha ao criar sessão para parte " + parteNum;
+      return;
     }
-    statusMsg.innerHTML += "<br>Upload concluído! Todas as partes foram enviadas.";
+
+    // Upload real da parte
+    const put = await fetch(uploadURL, {
+      method: "PUT",
+      headers: {
+        "Content-Type": mp3Blob.type,
+        "Content-Length": mp3Blob.size,
+        "Content-Range": `bytes 0-${mp3Blob.size - 1}/${mp3Blob.size}`
+      },
+      body: mp3Blob
+    });
+
+    if (put.ok) {
+      const file = await put.json();
+      statusMsg.innerHTML += `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
+      return file;
+    } else {
+      throw new Error("Erro ao enviar parte " + parteNum + ": " + put.status);
+    }
+  } catch (e) {
+    if (tentativas < 3) {
+      statusMsg.textContent = `Tentando novamente (tentativa ${tentativas + 1})...`;
+      return await salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, tentativas + 1);
+    } else {
+      statusMsg.textContent = `Erro ao enviar parte ${parteNum} após múltiplas tentativas: ${e.message}`;
+      throw e;
+    }
   }
+}
+
 
 
  function abrirPastasReunioes() {
