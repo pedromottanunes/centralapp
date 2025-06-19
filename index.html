@@ -176,9 +176,26 @@ document.getElementById('logoArea').onclick = function() {
     btnGravar.onclick  = iniciarGravacao;
     btnPausar.onclick  = pausarGravacao;
     btnParar.onclick   = pararGravacao;
-btnUpload.onclick = function() {
-  salvarNoDriveResumableParte(parteAtual, audioBlobGlobal, true);
+
+btnUpload.onclick = async function() {
+  statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
+
+  const PART_SIZE = 2 * 1024 * 1024;
+  const mp3Parts = splitBlob(audioBlobGlobal, PART_SIZE);
+
+  if (mp3Parts.length === 1) {
+    await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
+  } else {
+    for (let i = 0; i < mp3Parts.length; i++) {
+      const ehUltima = (i === mp3Parts.length - 1);
+      statusMsg.textContent = `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
+      await salvarNoDriveResumableParte(parteAtual + i, mp3Parts[i], ehUltima);
+    }
+  }
+  statusMsg.textContent += '\nEnvio concluído!';
 };
+
+
 
 
 
