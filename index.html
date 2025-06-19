@@ -87,11 +87,12 @@
   <div class="modal-main">
     <button class="close-btn" id="btnCloseLerProjeto" type="button">&times;</button>
 
-    <button id="btnPastinhaReunioesPdf" class="btn" style="background:#f3f7fc; color:#3576f6; border:1.5px solid #bcd4f6; font-size:1.1rem; width:160px; margin-bottom:8px; display:flex; align-items:center; gap:8px;"
+    <button id="btnPastinhaPdfs" class="btn" style="background:#f3f7fc; color:#3576f6; border:1.5px solid #bcd4f6; font-size:1.1rem; width:160px; margin-bottom:8px; display:flex; align-items:center; gap:8px;"
   type="button"
-  onclick="abrirPastasReunioes()">
+  onclick="abrirModalPdfs()">
   <img src="https://drive.google.com/thumbnail?id=1DQYY3oe21_PFXT1Sq10ZZX_-mEyOiFsJ" alt="Pastinha" style="width:22px;height:22px;"> Arquivos
 </button>
+
 
     <h3>Enviar PDF de Projeto</h3>
     <input type="file" id="inputPdf" accept="application/pdf" style="margin-bottom:16px;">
@@ -102,6 +103,18 @@
 </div>
 
 
+
+  <div class="modal-bg" id="modalPdfs">
+  <div class="modal-main" style="min-width:350px;max-width:98vw;">
+    <button class="close-btn" id="btnClosePdfs" type="button">&times;</button>
+    <h3>PDFs do Usuário</h3>
+    <div id="listaArquivosPdfs" style="max-height:320px; overflow:auto;"></div>
+    <div id="statusMsgPdfs" class="status-msg"></div>
+  </div>
+</div>
+
+
+
   
 <script>
   let loteIdAtual = null;
@@ -109,6 +122,10 @@ let paradaSolicitadaPeloUsuario = false;
 let btnPastinhaBrutos = null;
 let modalBrutos = null;
 let btnCloseBrutos = null;
+  let btnPastinhaPdfs = null;
+let modalPdfs = null;
+let btnClosePdfs = null;
+
 
   
   // Google Drive params
@@ -204,8 +221,9 @@ btnUpload.onclick = async function() {
 };
 
 
-
-
+btnPastinhaPdfs = document.getElementById('btnPastinhaPdfs');
+modalPdfs = document.getElementById('modalPdfs');
+btnClosePdfs = document.getElementById('btnClosePdfs');
 
 modalLerProjeto    = document.getElementById('modalLerProjeto');
 btnCloseLerProjeto = document.getElementById('btnCloseLerProjeto');
@@ -217,6 +235,8 @@ statusMsgPdf       = document.getElementById('statusMsgPdf');
 document.getElementById('cardEnviarPdf').onclick = abrirLerProjeto;
 btnCloseLerProjeto.onclick = fecharLerProjeto;
 btnUploadPdf.onclick = salvarPdfNoDrive;
+    btnPastinhaPdfs.onclick = abrirModalPdfs;
+btnClosePdfs.onclick = fecharModalPdfs;
 
 inputPdf.onchange = function() {
   const file = inputPdf.files[0];
@@ -276,6 +296,47 @@ async function listarArquivosBrutos() {
 }
 
 
+function abrirModalPdfs() {
+  modalPdfs.classList.add('open');
+  listarArquivosPdfs();
+}
+
+function fecharModalPdfs() {
+  modalPdfs.classList.remove('open');
+  document.getElementById('listaArquivosPdfs').innerHTML = "";
+  document.getElementById('statusMsgPdfs').textContent = "";
+}
+
+async function listarArquivosPdfs() {
+  if (!accessToken) {
+    document.getElementById('statusMsgPdfs').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgPdfs').textContent = 'Carregando arquivos...';
+
+  // TROQUE AQUI PELO ID DA SUA PASTA DE PDFs:
+  const pastaId = PASTA_RELATORIOS_ID; // Substitua por outro se quiser
+
+  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType='application/pdf'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+  try {
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        📄 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosPdfs').innerHTML = html;
+    document.getElementById('statusMsgPdfs').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgPdfs').textContent = 'Erro ao buscar arquivos.';
+  }
+}
   
 
 
