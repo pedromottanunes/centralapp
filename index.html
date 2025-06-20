@@ -136,6 +136,26 @@
 
   
 <script>
+function salvarChunksNoStorage(chunks) {
+  // Converte os chunks para base64 (precisa serializar para texto)
+  const reader = new FileReader();
+  reader.onload = function () {
+    localStorage.setItem('audio_chunks_temp', reader.result);
+  };
+  const blob = new Blob(chunks, { type: 'audio/webm' });
+  reader.readAsDataURL(blob);
+}
+function limparChunksNoStorage() {
+  localStorage.removeItem('audio_chunks_temp');
+}
+
+
+
+
+
+
+
+  
 
 let wakeLock = null;
 
@@ -211,6 +231,32 @@ let audioContext = null, analyser = null, source = null, visualizerAnimationId =
 
 
   window.onload = function() {
+window.onload = function() {
+  // Recuperação automática
+  const audioTemp = localStorage.getItem('audio_chunks_temp');
+  if (audioTemp) {
+    if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
+      // Recupera para o player
+      const blob = dataURLtoBlob(audioTemp);
+      audioPlayer.src = URL.createObjectURL(blob);
+      audioPlayer.style.display = 'block';
+      btnUpload.style.display = 'block';
+      statusMsg.textContent = 'Áudio recuperado de uma sessão anterior. Você pode ouvir ou salvar no Google Drive.';
+      audioBlobGlobal = blob;
+      limparChunksNoStorage();
+    } else {
+      limparChunksNoStorage();
+    }
+  }
+  // ...restante do seu onload...
+function dataURLtoBlob(dataurl) {
+  let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+  while (n--) u8arr[n] = bstr.charCodeAt(n);
+  return new Blob([u8arr], { type: mime });
+}
+
+    
     gapi.load('client', () => { gapi.client.init({apiKey: API_KEY}); });
 tokenClient = google.accounts.oauth2.initTokenClient({
   client_id: CLIENT_ID,
@@ -282,6 +328,8 @@ btnUpload.onclick = async function() {
     }
   }
   statusMsg.textContent += '\nEnvio concluído!';
+  limparChunksNoStorage();
+
 };
 
 
@@ -529,6 +577,8 @@ if (parteAtual === 1) {
     mediaRecorder.ondataavailable = e => {
       if (e.data.size > 0) {
         audioChunks.push(e.data);
+        salvarChunksNoStorage(audioChunks);
+        
         tamanhoAcumulado += e.data.size;
 
         // Verifica se atingiu o tamanho máximo (24 MB)
@@ -558,12 +608,16 @@ if (parteAtual === 1) {
       btnUpload.style.display = 'block';
       statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
       audioBlobGlobal = mp3Blob;
+      limparChunksNoStorage();
+
       // Reset a flag para a próxima gravação
       paradaSolicitadaPeloUsuario = false;
     }).catch((err) => {
       console.error("Erro na conversão/processamento:", err);
       statusMsg.textContent = 'Falha na conversão para MP3.';
       audioBlobGlobal = audioBlob;
+      limparChunksNoStorage();
+
       paradaSolicitadaPeloUsuario = false;
     });
   } else {
@@ -573,6 +627,8 @@ if (parteAtual === 1) {
     convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
       statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
       audioBlobGlobal = mp3Blob;
+limparChunksNoStorage();
+
       salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
         .then(() => {
           parteAtual++;
@@ -588,6 +644,8 @@ if (parteAtual === 1) {
     }).catch((err) => {
       console.error("Erro na conversão/processamento:", err);
       statusMsg.textContent = 'Falha na conversão automática para MP3.';
+limparChunksNoStorage();
+
     });
   }
 };
