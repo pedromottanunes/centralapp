@@ -136,6 +136,38 @@
 
   
 <script>
+
+let wakeLock = null;
+
+// Solicita o Wake Lock (tela acesa)
+async function ativarWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Wake Lock ativado!');
+      wakeLock.addEventListener('release', () => {
+        console.log('Wake Lock liberado!');
+      });
+    }
+  } catch (err) {
+    console.error('Erro ao ativar Wake Lock:', err);
+  }
+}
+
+// Libera o Wake Lock (pode apagar a tela)
+async function liberarWakeLock() {
+  if (wakeLock !== null) {
+    await wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+
+
+
+
+  
+  
   let loteIdAtual = null;
 let paradaSolicitadaPeloUsuario = false;
 let btnPastinhaBrutos = null;
@@ -474,6 +506,9 @@ async function listarArquivosRelatorios() {
   }
 
  function iniciarGravacao() {
+
+ativarWakeLock();
+  
    // Gera um novo ID de lote SÓ quando começa uma nova gravação
 if (parteAtual === 1) {
   loteIdAtual = gerarNovoLoteId();
@@ -578,6 +613,10 @@ if (parteAtual === 1) {
     }
   }
 function pararGravacao() {
+
+liberarWakeLock();
+
+  
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     paradaSolicitadaPeloUsuario = true; // <-- Marcar que foi o usuário!
     gravandoAutomatico = false;
