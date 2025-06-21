@@ -136,6 +136,14 @@
 
   
 <script>
+
+function renovarAccessTokenPeriodicamente() {
+  // Renova silenciosamente o token de acesso Google
+  tokenClient.requestAccessToken({ prompt: '' });
+  setTimeout(renovarAccessTokenPeriodicamente, 20 * 60 * 1000); // 20 minutos
+}
+
+  
 function salvarChunksNoStorage(chunks) {
   // Converte os chunks para base64 (precisa serializar para texto)
   const reader = new FileReader();
@@ -266,7 +274,8 @@ tokenClient = google.accounts.oauth2.initTokenClient({
 
     // Tenta fazer login automático, sem pedir nada ao usuário
 tokenClient.requestAccessToken({ prompt: '' });
-    
+    renovarAccessTokenPeriodicamente();
+
 
       // LOGIN PRO GOOGLE
 document.getElementById('logoArea').onclick = function() {
