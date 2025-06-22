@@ -369,14 +369,14 @@ window.onload = async function() {
     callback: handleTokenResponse
   });
 
-  // Login automático APENAS se já houver token válido salvo
-  const savedToken = localStorage.getItem('google_access_token');
-  if (savedToken) {
-    accessToken = savedToken;
-    getUserInfoGoogle();
-  }
+  // Login automático
+ const savedToken = localStorage.getItem('google_access_token');
+if (savedToken) {
+  accessToken = savedToken;
+  getUserInfoGoogle();
+  renovarAccessTokenPeriodicamente(); // só chama se já estiver logado
+}
 
-  renovarAccessTokenPeriodicamente();
 
   // ... resto do código permanece igual
 
