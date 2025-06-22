@@ -298,21 +298,26 @@ let audioContext = null, analyser = null, source = null, visualizerAnimationId =
 
 
 window.onload = async function() {
-  storageSink = await StorageSink.create(); // <--- Adicione esta linha
-  
-  // Recuperação automática (StorageSink)
-const antigos = await storageSink.readAll();
-if (antigos && antigos.length) {
-  const blob = new Blob(antigos, {type:'audio/webm'});
-  if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
-    audioPlayer.src = URL.createObjectURL(blob);
-    audioPlayer.style.display = 'block';
-    btnUpload.style.display    = 'block';
-    statusMsg.textContent      = 'Áudio recuperado de sessão anterior. Salve se desejar.';
-    audioBlobGlobal = blob;
+  try {
+    storageSink = await StorageSink.create();
+    // Recuperação automática (StorageSink)
+    const antigos = await storageSink.readAll();
+    if (antigos && antigos.length) {
+      const blob = new Blob(antigos, {type:'audio/webm'});
+      if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
+        audioPlayer.src = URL.createObjectURL(blob);
+        audioPlayer.style.display = 'block';
+        btnUpload.style.display    = 'block';
+        statusMsg.textContent      = 'Áudio recuperado de sessão anterior. Salve se desejar.';
+        audioBlobGlobal = blob;
+      }
+      await storageSink.clear();
+    }
+  } catch (erro) {
+    // Se der erro, apenas mostra mensagem e continua
+    alert('Falha ao inicializar armazenamento local (áudio não será salvo entre sessões).');
+    storageSink = null;
   }
-  await storageSink.clear();
-}
 
 
   
