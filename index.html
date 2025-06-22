@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  
   <meta charset="UTF-8">
   <title>FullJob Workspace</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,14 +27,13 @@
   </style>
 </head>
 
-
-  
 <body>
   <div class="container">
    <div class="settings-header">
   <span class="settings-title">Painel de Controle</span>
   <div id="logoArea" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;">
     <img id="profileLogo" class="profile-pic" src="https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg" alt="Logo">
+    <span id="userNameSpan" style="font-size:0.8rem;color:#666;margin-top:2px;"></span>
   </div>
 </div>
 
@@ -43,36 +41,28 @@
       <div class="settings-card" id="cardGravar">
         <div class="icon">🎤</div><div class="label">Gravar Áudio</div>
       </div>
-
       
-<div class="settings-card" id="cardEnviarPdf"><div class="icon">📑</div><div class="label">Enviar PDF</div></div>
-
+      <div class="settings-card" id="cardEnviarPdf"><div class="icon">📑</div><div class="label">Enviar PDF</div></div>
       
       <div class="settings-card" id="cardAtas"><div class="icon">🧠</div><div class="label">Atas de Reuniões</div></div>
-<div class="settings-card" id="cardRelatorios"><div class="icon">📄</div><div class="label">Relatórios</div></div>
-
-      <!--<div class="settings-card"><div class="icon">🔑</div><div class="label">Login Google</div></div>-->
-      <!--<div class="settings-card no-func"><div class="icon">⚙️</div><div class="label">Configuração</div></div>-->
+      <div class="settings-card" id="cardRelatorios"><div class="icon">📄</div><div class="label">Relatórios</div></div>
     </div>
   </div>
+
   <!-- MODAL GRAVADOR DE ÁUDIO -->
   <div class="modal-bg" id="modalGravador">
     <div class="modal-main">
       <button class="close-btn" id="btnCloseGravador" type="button">&times;</button>
 
-<!-- Ícone de pastinha para abrir modal de arquivos de atas -->
 <button id="btnPastinhaBrutos" class="btn" style="background:#f3f7fc; color:#3576f6; border:1.5px solid #bcd4f6; font-size:1.1rem; width:160px; margin-bottom:8px; display:flex; align-items:center; gap:8px;"
-  type="button"
-  onclick="abrirPastasReunioes()">
+  type="button">
   <img src="https://drive.google.com/thumbnail?id=1DQYY3oe21_PFXT1Sq10ZZX_-mEyOiFsJ" alt="Pastinha" style="width:22px;height:22px;"> Arquivos
 </button>
 
-      
       <h3>Gravador de Áudio</h3>
       <canvas id="audioVisualizer" width="280" height="46" style="margin:12px 0 10px 0; display:none; background:#f4f8fc; border-radius:14px;"></canvas>
      <div id="faixaFreq" style="width:280px;font-size:12px;text-align:center;color:#3576f6;user-select:none;display:none;"></div>
 
-           
       <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
         <button class="btn" id="btnGravar" type="button">⏺️ Gravar</button>
         <button class="btn" id="btnPausar" type="button" disabled>⏸️ Pausar</button>
@@ -90,8 +80,7 @@
     <button class="close-btn" id="btnCloseLerProjeto" type="button">&times;</button>
 
     <button id="btnPastinhaPdfs" class="btn" style="background:#f3f7fc; color:#3576f6; border:1.5px solid #bcd4f6; font-size:1.1rem; width:160px; margin-bottom:8px; display:flex; align-items:center; gap:8px;"
-  type="button"
-  onclick="abrirModalPdfs()">
+  type="button">
   <img src="https://drive.google.com/thumbnail?id=1DQYY3oe21_PFXT1Sq10ZZX_-mEyOiFsJ" alt="Pastinha" style="width:22px;height:22px;"> Arquivos
 </button>
 
@@ -103,9 +92,7 @@
   </div>
 </div>
 
-
-
-  <div class="modal-bg" id="modalPdfs">
+<div class="modal-bg" id="modalPdfs">
   <div class="modal-main" style="min-width:350px;max-width:98vw;">
     <button class="close-btn" id="btnClosePdfs" type="button">&times;</button>
     <h3>PDFs do Usuário</h3>
@@ -114,8 +101,7 @@
   </div>
 </div>
 
-
-<!-- MODAL ATAS DE REUNIÕES (apenas atas processadas) -->
+<!-- MODAL ATAS DE REUNIÕES -->
 <div class="modal-bg" id="modalAtas">
   <div class="modal-main" style="min-width:350px;max-width:98vw;">
     <button class="close-btn" id="btnCloseAtas" type="button">&times;</button>
@@ -135,33 +121,50 @@
   </div>
 </div>
 
+<!-- MODAL PASTA ATAS DE REUNIÃO -->
+<div class="modal-bg" id="modalPastaReunioes">
+  <div class="modal-main" style="min-width:350px;max-width:98vw;">
+    <button class="close-btn" id="btnClosePastaReunioes" type="button">&times;</button>
+    <h3>Lista de arquivos</h3>
+    <div style="display:flex; gap:24px; width:100%;">
+      <div style="flex:1; border-right:2px solid #e0e4ee; padding-right:12px;">
+        <div style="font-weight:600; color:#3576f6; margin-bottom:4px;">Áudio bruto do usuário</div>
+        <div id="listaArquivosReunioesUsuario" style="max-height:270px; overflow:auto;"></div>
+      </div>
+      <div style="flex:1; padding-left:12px;">
+        <div style="font-weight:600; color:#2254a6; margin-bottom:4px;">ATA da reunião</div>
+        <div id="listaArquivosReunioesAutomatizados" style="max-height:270px; overflow:auto;"></div>
+      </div>
+    </div>
+    <div id="statusMsgReunioes" class="status-msg"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBrutos">
+  <div class="modal-main" style="min-width:350px;max-width:98vw;">
+    <button class="close-btn" id="btnCloseBrutos" type="button">&times;</button>
+    <h3>Áudios Brutos</h3>
+    <div id="listaArquivosBrutos" style="max-height:320px; overflow:auto;"></div>
+    <div id="statusMsgBrutos" class="status-msg"></div>
+  </div>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js"></script>
 <script src="https://unpkg.com/idb@7/build/iife/index-min.js"></script>
 <script src="https://accounts.google.com/gsi/client"></script>
 <script src="https://apis.google.com/js/api.js"></script>
-<script>
-  // ... todo o seu JS ...
-</script>
-
-  
-
 
 <script>
-  
-
 function renovarAccessTokenPeriodicamente() {
   // Renova silenciosamente o token de acesso Google
-  tokenClient.requestAccessToken({ prompt: '' });
+  if (tokenClient) {
+    tokenClient.requestAccessToken({ prompt: '' });
+  }
   setTimeout(renovarAccessTokenPeriodicamente, 20 * 60 * 1000); // 20 minutos
 }
 
-
-
 /*****************************************************************
  *  StorageSink  –  salva chunks de áudio de forma híbrida
- *  1º tenta File-System Access API (OPFS)  melhor p/ mobile Chromium
- *  2º fallback automático p/ IndexedDB usando idb
  *****************************************************************/
 class StorageSink {
   static async create() {
@@ -173,11 +176,16 @@ class StorageSink {
     sink.db            = null;
     sink.store         = null;
     if (fsOk) {
-      // Origin-private file system (não pede permissão visual)
-      const root = await navigator.storage.getDirectory();
-      sink.fileHandle = await root.getFileHandle('temp_audio.webm', {create:true});
-      sink.writable   = await sink.fileHandle.createWritable();
-    } else {
+      try {
+        const root = await navigator.storage.getDirectory();
+        sink.fileHandle = await root.getFileHandle('temp_audio.webm', {create:true});
+        sink.writable   = await sink.fileHandle.createWritable();
+      } catch(e) {
+        console.error('Erro OPFS:', e);
+        sink.useFS = false;
+      }
+    }
+    if (!sink.useFS) {
       // IndexedDB (fallback)
       sink.db    = await idb.openDB('fulljob-audio', 1, {
         upgrade(db){ db.createObjectStore('chunks', {autoIncrement:true}); }
@@ -188,45 +196,79 @@ class StorageSink {
   }
 
   async appendChunk(chunk) {
-    if (this.useFS) {
+    if (this.useFS && this.writable) {
       await this.writable.write(chunk);
-    } else {
+    } else if (this.store) {
       await this.store.add(chunk);
     }
   }
 
-  /** devolve Array<Blob> com todos os chunks na ordem gravada */
   async readAll() {
-    if (this.useFS) {
-      await this.writable.close();                     // garante flush
-      const file = await this.fileHandle.getFile();    // Blob completo
-      // precisamos devolvê-lo em chunks ― 1 só já resolve
+    if (this.useFS && this.fileHandle) {
+      if (this.writable) await this.writable.close();
+      const file = await this.fileHandle.getFile();
       return [file];
-    } else {
+    } else if (this.db) {
       const tx   = this.db.transaction('chunks');
       const all  = await tx.objectStore('chunks').getAll();
       return all;
     }
+    return [];
   }
 
   async clear() {
-    if (this.useFS) {
+    if (this.useFS && this.writable) {
       await this.writable.truncate(0);
-    } else {
+    } else if (this.db) {
       const tx = this.db.transaction('chunks','readwrite');
       await tx.objectStore('chunks').clear();
     }
   }
 }
-/* ------------------------------------------------------------- */
 
-
-  
-
+// DECLARAÇÃO DE TODAS AS VARIÁVEIS
 let wakeLock = null;
-let storageSink;   // instância de StorageSink
+let storageSink;
+let loteIdAtual = null;
+let paradaSolicitadaPeloUsuario = false;
 
-// Solicita o Wake Lock (tela acesa)
+// Variáveis de elementos DOM - CORRIGIDO
+let btnPastinhaBrutos = null;
+let modalBrutos = null;
+let btnCloseBrutos = null;
+let btnPastinhaPdfs = null;
+let modalPdfs = null;
+let btnClosePdfs = null;
+let btnAtas = null, modalAtas = null, btnCloseAtas = null;
+let btnRelatorios = null, modalRelatorios = null, btnCloseRelatorios = null;
+let modalPastaReunioes = null, btnClosePastaReunioes = null; // ADICIONADO
+let userNameSpan = null; // ADICIONADO
+let profileLogo = null;
+
+// Google Drive params
+const TAMANHO_MAX_PARTE = 10 * 1024 * 1024;
+const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
+const PASTA_AUDIOS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
+const PASTA_PDF_ID = '1fIPyHT9l31m-LWDRy4rOVyFCuGF7nc9m';
+const PASTA_ATASREUNIOES_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
+const PASTA_RELATORIOS_DOS_PDFS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
+
+let accessToken = '';
+let tokenClient = null;
+
+// DOM elements refs
+let btnGravar, btnPausar, btnParar, audioPlayer, btnUpload, statusMsg, modalGravador, btnCloseGravador;
+let mediaRecorder, audioChunks = [], audioBlob, audioBlobGlobal = null;
+let modalLerProjeto, btnCloseLerProjeto, inputPdf, pdfFileName, btnUploadPdf, statusMsgPdf, pdfBlobGlobal = null;
+let parteAtual = 1;
+let tamanhoAcumulado = 0;
+let gravandoAutomatico = false;
+let audioContext = null, analyser = null, source = null, visualizerAnimationId = null;
+
+// Solicita o Wake Lock
 async function ativarWakeLock() {
   try {
     if ('wakeLock' in navigator) {
@@ -241,7 +283,6 @@ async function ativarWakeLock() {
   }
 }
 
-// Libera o Wake Lock (pode apagar a tela)
 async function liberarWakeLock() {
   if (wakeLock !== null) {
     await wakeLock.release();
@@ -249,361 +290,156 @@ async function liberarWakeLock() {
   }
 }
 
-
-
-
-
-  
-  
-  let loteIdAtual = null;
-let paradaSolicitadaPeloUsuario = false;
-let btnPastinhaBrutos = null;
-let modalBrutos = null;
-let btnCloseBrutos = null;
-  let btnPastinhaPdfs = null;
-let modalPdfs = null;
-let btnClosePdfs = null;
-  let btnAtas = null, modalAtas = null, btnCloseAtas = null;
-let btnRelatorios = null, modalRelatorios = null, btnCloseRelatorios = null;
-
-
-
-  
-  // Google Drive params
-const TAMANHO_MAX_PARTE = 10 * 1024 * 1024; // 23 MB em bytes
-
-const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
-
-const PASTA_AUDIOS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';      // ID da pasta de atas relatórios de reuniões
-const PASTA_PDF_ID = '1fIPyHT9l31m-LWDRy4rOVyFCuGF7nc9m'; // ID da pasta de relatórios de projetos
-
-// Adicione as IDs das pastas de arquivos automatizados:
-const PASTA_ATASREUNIOES_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
-const PASTA_RELATORIOS_DOS_PDFS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
- 
-
-  let accessToken = '';
-  let tokenClient = null;
-
-  // DOM elements refs
-  let btnGravar, btnPausar, btnParar, audioPlayer, btnUpload, statusMsg, modalGravador, btnCloseGravador;
-  let mediaRecorder, audioChunks = [], audioBlob, audioBlobGlobal = null;
-  let modalLerProjeto, btnCloseLerProjeto, inputPdf, pdfFileName, btnUploadPdf, statusMsgPdf, pdfBlobGlobal = null;
-let parteAtual = 1;
-let tamanhoAcumulado = 0;
-let gravandoAutomatico = false;
-let audioContext = null, analyser = null, source = null, visualizerAnimationId = null;
-
-
 window.onload = async function() {
   try {
     storageSink = await StorageSink.create();
-    // Recuperação automática (StorageSink)
+    // Recuperação automática
     if (storageSink) {
-  const antigos = await storageSink.readAll();
-  if (antigos && antigos.length) {
-      const blob = new Blob(antigos, {type:'audio/webm'});
-      if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
-        audioPlayer.src = URL.createObjectURL(blob);
-        audioPlayer.style.display = 'block';
-        btnUpload.style.display    = 'block';
-        statusMsg.textContent      = 'Áudio recuperado de sessão anterior. Salve se desejar.';
-        audioBlobGlobal = blob;
+      const antigos = await storageSink.readAll();
+      if (antigos && antigos.length) {
+        const blob = new Blob(antigos, {type:'audio/webm'});
+        if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
+          audioPlayer = document.getElementById('audioPlayer');
+          btnUpload = document.getElementById('btnUpload');
+          statusMsg = document.getElementById('statusMsg');
+          
+          audioPlayer.src = URL.createObjectURL(blob);
+          audioPlayer.style.display = 'block';
+          btnUpload.style.display = 'block';
+          statusMsg.textContent = 'Áudio recuperado de sessão anterior. Salve se desejar.';
+          audioBlobGlobal = blob;
+        }
+        await storageSink.clear();
       }
-if (storageSink) await storageSink.clear();    }
+    }
   } catch (erro) {
-    // Se der erro, apenas mostra mensagem e continua
     alert('Falha ao inicializar armazenamento local (áudio não será salvo entre sessões).');
     storageSink = null;
   }
 
+  // Inicialização do Google API
+  gapi.load('client', () => { 
+    gapi.client.init({apiKey: API_KEY}).then(() => {
+      console.log('Google API Client inicializado');
+    }); 
+  });
 
-  
-  // ...restante do seu onload...
-function dataURLtoBlob(dataurl) {
-  let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
-    bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
-  while (n--) u8arr[n] = bstr.charCodeAt(n);
-  return new Blob([u8arr], { type: mime });
-}
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: handleTokenResponse
+  });
 
-    
-    gapi.load('client', () => { gapi.client.init({apiKey: API_KEY}); });
-tokenClient = google.accounts.oauth2.initTokenClient({
-  client_id: CLIENT_ID,
-  scope: SCOPES,
-  callback: handleTokenResponse
-});
+  // TENTA LOGIN AUTOMÁTICO APENAS SE JÁ HOUVER TOKEN SALVO
+  const savedToken = localStorage.getItem('google_access_token');
+  if (savedToken) {
+    accessToken = savedToken;
+    getUserInfoGoogle();
+  }
 
-    // Tenta fazer login automático, sem pedir nada ao usuário
-tokenClient.requestAccessToken({ prompt: '' });
-    renovarAccessTokenPeriodicamente();
+  renovarAccessTokenPeriodicamente();
 
+  // OBTÉM TODAS AS REFERÊNCIAS DOS ELEMENTOS DOM
+  btnGravar = document.getElementById('btnGravar');
+  btnPausar = document.getElementById('btnPausar');
+  btnParar = document.getElementById('btnParar');
+  audioPlayer = document.getElementById('audioPlayer');
+  btnUpload = document.getElementById('btnUpload');
+  statusMsg = document.getElementById('statusMsg');
+  modalGravador = document.getElementById('modalGravador');
+  btnCloseGravador = document.getElementById('btnCloseGravador');
+  profileLogo = document.getElementById('profileLogo');
+  userNameSpan = document.getElementById('userNameSpan'); // ADICIONADO
 
-      // LOGIN PRO GOOGLE
-document.getElementById('logoArea').onclick = function() {
-  tokenClient.requestAccessToken();
-};
+  btnPastinhaBrutos = document.getElementById('btnPastinhaBrutos');
+  modalBrutos = document.getElementById('modalBrutos');
+  btnCloseBrutos = document.getElementById('btnCloseBrutos');
 
-   btnPastinhaBrutos = document.getElementById('btnPastinhaBrutos');
-modalBrutos = document.getElementById('modalBrutos');
-btnCloseBrutos = document.getElementById('btnCloseBrutos');
+  btnAtas = document.getElementById('cardAtas');
+  modalAtas = document.getElementById('modalAtas');
+  btnCloseAtas = document.getElementById('btnCloseAtas');
 
-    btnGravar        = document.getElementById('btnGravar');
-    btnPausar        = document.getElementById('btnPausar');
-    btnParar         = document.getElementById('btnParar');
-    audioPlayer      = document.getElementById('audioPlayer');
-    btnUpload        = document.getElementById('btnUpload');
-    statusMsg        = document.getElementById('statusMsg');
-    modalGravador    = document.getElementById('modalGravador');
-    btnCloseGravador = document.getElementById('btnCloseGravador');
-    profileLogo  = document.getElementById('profileLogo');
-btnAtas = document.getElementById('cardAtas');
-modalAtas = document.getElementById('modalAtas');
-btnCloseAtas = document.getElementById('btnCloseAtas');
-btnAtas.onclick = abrirModalAtas;
-btnCloseAtas.onclick = fecharModalAtas;
+  btnRelatorios = document.getElementById('cardRelatorios');
+  modalRelatorios = document.getElementById('modalRelatorios');
+  btnCloseRelatorios = document.getElementById('btnCloseRelatorios');
 
-btnRelatorios = document.getElementById('cardRelatorios');
-modalRelatorios = document.getElementById('modalRelatorios');
-btnCloseRelatorios = document.getElementById('btnCloseRelatorios');
-btnRelatorios.onclick = abrirModalRelatorios;
-btnCloseRelatorios.onclick = fecharModalRelatorios;
-
-
-      // Elementos do modal das pastas de atas de reuniões
-  modalPastaReunioes    = document.getElementById('modalPastaReunioes');
+  modalPastaReunioes = document.getElementById('modalPastaReunioes');
   btnClosePastaReunioes = document.getElementById('btnClosePastaReunioes');
-  btnClosePastaReunioes.onclick = fecharPastasReunioes;
-    btnPastinhaBrutos.onclick = abrirModalBrutos;
-btnCloseBrutos.onclick = fecharModalBrutos;
 
-    document.getElementById('cardGravar').onclick = abrirGravador;
-    btnCloseGravador.onclick = fecharGravador;
-    btnGravar.onclick  = iniciarGravacao;
-    btnPausar.onclick  = pausarGravacao;
-    btnParar.onclick   = pararGravacao;
-    
-btnUpload.onclick = async function() {
-  statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
+  btnPastinhaPdfs = document.getElementById('btnPastinhaPdfs');
+  modalPdfs = document.getElementById('modalPdfs');
+  btnClosePdfs = document.getElementById('btnClosePdfs');
 
-  const PART_SIZE = 10 * 1024 * 1024;
-  const mp3Parts = splitBlob(audioBlobGlobal, PART_SIZE);
+  modalLerProjeto = document.getElementById('modalLerProjeto');
+  btnCloseLerProjeto = document.getElementById('btnCloseLerProjeto');
+  inputPdf = document.getElementById('inputPdf');
+  pdfFileName = document.getElementById('pdfFileName');
+  btnUploadPdf = document.getElementById('btnUploadPdf');
+  statusMsgPdf = document.getElementById('statusMsgPdf');
 
-  if (mp3Parts.length === 1) {
-    await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
-  } else {
-    for (let i = 0; i < mp3Parts.length; i++) {
-      const ehUltima = (i === mp3Parts.length - 1);
-      statusMsg.textContent = `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
-      await salvarNoDriveResumableParte(parteAtual + i, mp3Parts[i], ehUltima);
-    }
-  }
-  statusMsg.textContent += '\nEnvio concluído!';
-  if (storageSink) await storageSink.clear();
-
-};
-
-
-btnPastinhaPdfs = document.getElementById('btnPastinhaPdfs');
-modalPdfs = document.getElementById('modalPdfs');
-btnClosePdfs = document.getElementById('btnClosePdfs');
-
-modalLerProjeto    = document.getElementById('modalLerProjeto');
-btnCloseLerProjeto = document.getElementById('btnCloseLerProjeto');
-inputPdf           = document.getElementById('inputPdf');
-pdfFileName        = document.getElementById('pdfFileName');
-btnUploadPdf       = document.getElementById('btnUploadPdf');
-statusMsgPdf       = document.getElementById('statusMsgPdf');
-
-document.getElementById('cardEnviarPdf').onclick = abrirLerProjeto;
-btnCloseLerProjeto.onclick = fecharLerProjeto;
-btnUploadPdf.onclick = salvarPdfNoDrive;
-    btnPastinhaPdfs.onclick = abrirModalPdfs;
-btnClosePdfs.onclick = fecharModalPdfs;
-
-inputPdf.onchange = function() {
-  const file = inputPdf.files[0];
-  if (file && file.type === "application/pdf") {
-    pdfFileName.textContent = "Selecionado: " + file.name;
-    btnUploadPdf.style.display = 'block';
-    pdfBlobGlobal = file;
-  } else {
-    pdfFileName.textContent = "Selecione um arquivo PDF válido.";
-    btnUploadPdf.style.display = 'none';
-    pdfBlobGlobal = null;
-  }
-};
-
+  // EVENT LISTENERS
+  document.getElementById('logoArea').onclick = function() {
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
   };
 
+  document.getElementById('cardGravar').onclick = abrirGravador;
+  btnCloseGravador.onclick = fecharGravador;
+  btnGravar.onclick = iniciarGravacao;
+  btnPausar.onclick = pausarGravacao;
+  btnParar.onclick = pararGravacao;
 
+  btnUpload.onclick = async function() {
+    statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
+    const PART_SIZE = 10 * 1024 * 1024;
+    const mp3Parts = splitBlob(audioBlobGlobal, PART_SIZE);
 
-  function abrirModalBrutos() {
-  modalBrutos.classList.add('open');
-  listarArquivosBrutos();
-}
+    if (mp3Parts.length === 1) {
+      await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
+    } else {
+      for (let i = 0; i < mp3Parts.length; i++) {
+        const ehUltima = (i === mp3Parts.length - 1);
+        statusMsg.textContent = `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
+        await salvarNoDriveResumableParte(parteAtual + i, mp3Parts[i], ehUltima);
+      }
+    }
+    statusMsg.textContent += '\nEnvio concluído!';
+    if (storageSink) await storageSink.clear();
+  };
 
-function fecharModalBrutos() {
-  modalBrutos.classList.remove('open');
-  document.getElementById('listaArquivosBrutos').innerHTML = "";
-  document.getElementById('statusMsgBrutos').textContent = "";
-}
+  btnAtas.onclick = abrirModalAtas;
+  btnCloseAtas.onclick = fecharModalAtas;
+  btnRelatorios.onclick = abrirModalRelatorios;
+  btnCloseRelatorios.onclick = fecharModalRelatorios;
+  btnClosePastaReunioes.onclick = fecharPastasReunioes;
+  btnPastinhaBrutos.onclick = abrirPastasReunioes;
+  btnCloseBrutos.onclick = fecharModalBrutos;
 
-async function listarArquivosBrutos() {
-  if (!accessToken) {
-    document.getElementById('statusMsgBrutos').textContent = 'Conecte com o Google Drive.';
-    return;
-  }
-  document.getElementById('statusMsgBrutos').textContent = 'Carregando arquivos...';
-  try {
-    // Só busca arquivos da pasta de áudios brutos
-    const pastaId = PASTA_AUDIOS_ID;
-    const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType contains 'audio/'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
-    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
-    const data = await resp.json();
-    const arquivos = data.files || [];
-    let html = '<ul style="list-style:none;padding:0;">';
-    arquivos.forEach(arq => {
-      html += `<li style="margin-bottom:12px;">
-        🎵 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
-      </li>`;
-    });
-    html += '</ul>';
-    document.getElementById('listaArquivosBrutos').innerHTML = html;
-    document.getElementById('statusMsgBrutos').textContent = '';
-  } catch (e) {
-    document.getElementById('statusMsgBrutos').textContent = 'Erro ao buscar arquivos.';
-  }
-}
+  document.getElementById('cardEnviarPdf').onclick = abrirLerProjeto;
+  btnCloseLerProjeto.onclick = fecharLerProjeto;
+  btnUploadPdf.onclick = salvarPdfNoDrive;
+  btnPastinhaPdfs.onclick = abrirModalPdfs;
+  btnClosePdfs.onclick = fecharModalPdfs;
 
+  inputPdf.onchange = function() {
+    const file = inputPdf.files[0];
+    if (file && file.type === "application/pdf") {
+      pdfFileName.textContent = "Selecionado: " + file.name;
+      btnUploadPdf.style.display = 'block';
+      pdfBlobGlobal = file;
+    } else {
+      pdfFileName.textContent = "Selecione um arquivo PDF válido.";
+      btnUploadPdf.style.display = 'none';
+      pdfBlobGlobal = null;
+    }
+  };
+};
 
-function abrirModalPdfs() {
-  modalPdfs.classList.add('open');
-  listarArquivosPdfs();
-}
+// FUNÇÕES CORRIGIDAS
 
-function fecharModalPdfs() {
-  modalPdfs.classList.remove('open');
-  document.getElementById('listaArquivosPdfs').innerHTML = "";
-  document.getElementById('statusMsgPdfs').textContent = "";
-}
-
-async function listarArquivosPdfs() {
-  if (!accessToken) {
-    document.getElementById('statusMsgPdfs').textContent = 'Conecte com o Google Drive.';
-    return;
-  }
-  document.getElementById('statusMsgPdfs').textContent = 'Carregando arquivos...';
-
-  // TROQUE AQUI PELO ID DA SUA PASTA DE PDFs:
-  const pastaId = PASTA_PDF_ID; // Substitua por outro se quiser
-
-  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType='application/pdf'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
-  try {
-    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
-    const data = await resp.json();
-    const arquivos = data.files || [];
-    let html = '<ul style="list-style:none;padding:0;">';
-    arquivos.forEach(arq => {
-      html += `<li style="margin-bottom:12px;">
-        📄 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
-      </li>`;
-    });
-    html += '</ul>';
-    document.getElementById('listaArquivosPdfs').innerHTML = html;
-    document.getElementById('statusMsgPdfs').textContent = '';
-  } catch (e) {
-    document.getElementById('statusMsgPdfs').textContent = 'Erro ao buscar arquivos.';
-  }
-}
-  
-function abrirModalAtas() {
-  modalAtas.classList.add('open');
-  listarArquivosAtas();
-}
-function fecharModalAtas() {
-  modalAtas.classList.remove('open');
-  document.getElementById('listaArquivosAtas').innerHTML = "";
-  document.getElementById('statusMsgAtas').textContent = "";
-}
-async function listarArquivosAtas() {
-  if (!accessToken) {
-    document.getElementById('statusMsgAtas').textContent = 'Conecte com o Google Drive.';
-    return;
-  }
-  document.getElementById('statusMsgAtas').textContent = 'Carregando atas...';
-
-  const pastaId = PASTA_ATASREUNIOES_ID; // Atas processadas
-  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
-  try {
-    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
-    const data = await resp.json();
-    const arquivos = data.files || [];
-    let html = '<ul style="list-style:none;padding:0;">';
-    arquivos.forEach(arq => {
-      html += `<li style="margin-bottom:12px;">
-        🧠 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
-      </li>`;
-    });
-    html += '</ul>';
-    document.getElementById('listaArquivosAtas').innerHTML = html;
-    document.getElementById('statusMsgAtas').textContent = '';
-  } catch (e) {
-    document.getElementById('statusMsgAtas').textContent = 'Erro ao buscar atas.';
-  }
-}
-
-function abrirModalRelatorios() {
-  modalRelatorios.classList.add('open');
-  listarArquivosRelatorios();
-}
-function fecharModalRelatorios() {
-  modalRelatorios.classList.remove('open');
-  document.getElementById('listaArquivosRelatorios').innerHTML = "";
-  document.getElementById('statusMsgRelatorios').textContent = "";
-}
-async function listarArquivosRelatorios() {
-  if (!accessToken) {
-    document.getElementById('statusMsgRelatorios').textContent = 'Conecte com o Google Drive.';
-    return;
-  }
-  document.getElementById('statusMsgRelatorios').textContent = 'Carregando relatórios...';
-
-  const pastaId = PASTA_RELATORIOS_DOS_PDFS_ID; // Relatórios PDF
-  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
-  try {
-    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
-    const data = await resp.json();
-    const arquivos = data.files || [];
-    let html = '<ul style="list-style:none;padding:0;">';
-    arquivos.forEach(arq => {
-      html += `<li style="margin-bottom:12px;">
-        📄 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
-        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
-        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
-      </li>`;
-    });
-    html += '</ul>';
-    document.getElementById('listaArquivosRelatorios').innerHTML = html;
-    document.getElementById('statusMsgRelatorios').textContent = '';
-  } catch (e) {
-    document.getElementById('statusMsgRelatorios').textContent = 'Erro ao buscar relatórios.';
-  }
-}
-
-
-  function handleTokenResponse(tokenResponse) {
+function handleTokenResponse(tokenResponse) {
   if (tokenResponse && tokenResponse.access_token) {
     accessToken = tokenResponse.access_token;
+    localStorage.setItem('google_access_token', accessToken); // Salva o token
     statusMsg.textContent = "Google Drive conectado.";
     getUserInfoGoogle();
   } else {
@@ -611,35 +447,30 @@ async function listarArquivosRelatorios() {
   }
 }
 
-  
-
-
-  // GRAVADOR  
-
-  function abrirGravador() {
-    modalGravador.classList.add('open');
-    resetarGravador();
-  }
-  function fecharGravador() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    modalGravador.classList.remove('open');
-    resetarGravador();
-    pararVisualizador();
-  }
-
- function iniciarGravacao() {
-
-ativarWakeLock();
-  
-   // Gera um novo ID de lote SÓ quando começa uma nova gravação
-if (parteAtual === 1) {
-  loteIdAtual = gerarNovoLoteId();
+function abrirGravador() {
+  modalGravador.classList.add('open');
+  resetarGravador();
 }
+
+function fecharGravador() {
+  if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+  modalGravador.classList.remove('open');
+  resetarGravador();
+  pararVisualizador();
+}
+
+function iniciarGravacao() {
+  ativarWakeLock();
+  
+  if (parteAtual === 1) {
+    loteIdAtual = gerarNovoLoteId();
+  }
 
   if (!navigator.mediaDevices || !window.MediaRecorder) {
     alert("Seu navegador não suporta gravação de áudio!");
     return;
   }
+
   navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
     mediaRecorder = new MediaRecorder(stream);
     iniciarVisualizador(stream);
@@ -655,77 +486,73 @@ if (parteAtual === 1) {
         
         tamanhoAcumulado += e.data.size;
 
-        // Verifica se atingiu o tamanho máximo (24 MB)
         if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
-          gravandoAutomatico = true; // Sinaliza que é auto
-          mediaRecorder.stop(); // Vai disparar o onstop abaixo!
+          gravandoAutomatico = true;
+          mediaRecorder.stop();
         }
       }
     };
 
     mediaRecorder.onstart = () => {
-      btnGravar.disabled = true; btnPausar.disabled = false; btnParar.disabled = false;
+      btnGravar.disabled = true; 
+      btnPausar.disabled = false; 
+      btnParar.disabled = false;
       statusMsg.textContent = 'Gravando... (Pode iniciar a reunião)';
       audioPlayer.style.display = 'none';
       btnUpload.style.display = 'none';
     };
-    mediaRecorder.onpause = () => { statusMsg.textContent = 'Gravação pausada.'; };
-    mediaRecorder.onresume = () => { statusMsg.textContent = 'Gravando... (Parte ' + parteAtual + ')'; };
 
-   mediaRecorder.onstop = () => {
-  if (paradaSolicitadaPeloUsuario) {
-    // PARADA MANUAL: apenas processa e mostra para upload
-    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
-      audioPlayer.src = URL.createObjectURL(mp3Blob);
-      audioPlayer.style.display = 'block';
-      btnUpload.style.display = 'block';
-      statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
-      audioBlobGlobal = mp3Blob;
-if (storageSink) await storageSink.clear();
+    mediaRecorder.onpause = () => { 
+      statusMsg.textContent = 'Gravação pausada.'; 
+    };
 
-      // Reset a flag para a próxima gravação
-      paradaSolicitadaPeloUsuario = false;
-    }).catch((err) => {
-      console.error("Erro na conversão/processamento:", err);
-      statusMsg.textContent = 'Falha na conversão para MP3.';
-      audioBlobGlobal = audioBlob;
-if (storageSink) await storageSink.clear();
+    mediaRecorder.onresume = () => { 
+      statusMsg.textContent = 'Gravando... (Parte ' + parteAtual + ')'; 
+    };
 
-      paradaSolicitadaPeloUsuario = false;
-    });
-  } else {
-    // PARADA AUTOMÁTICA (atingiu o tamanho do chunk)
-    gravandoAutomatico = false; // Previne loop
-    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
-      statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
-      audioBlobGlobal = mp3Blob;
-if (storageSink) await storageSink.clear();
+    // FUNÇÃO ONSTOP CORRIGIDA
+    mediaRecorder.onstop = async () => {
+      if (paradaSolicitadaPeloUsuario) {
+        // PARADA MANUAL
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        try {
+          const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+          audioPlayer.src = URL.createObjectURL(mp3Blob);
+          audioPlayer.style.display = 'block';
+          btnUpload.style.display = 'block';
+          statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
+          audioBlobGlobal = mp3Blob;
+          if (storageSink) await storageSink.clear();
+          paradaSolicitadaPeloUsuario = false;
+        } catch (err) {
+          console.error("Erro na conversão/processamento:", err);
+          statusMsg.textContent = 'Falha na conversão para MP3.';
+          audioBlobGlobal = audioBlob;
+          if (storageSink) await storageSink.clear();
+          paradaSolicitadaPeloUsuario = false;
+        }
+      } else {
+        // PARADA AUTOMÁTICA
+        gravandoAutomatico = false;
+        audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+        try {
+          const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+          statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
+          audioBlobGlobal = mp3Blob;
+          if (storageSink) await storageSink.clear();
 
-
-      salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
-        .then(() => {
+          await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
           parteAtual++;
           audioChunks = [];
           tamanhoAcumulado = 0;
-          iniciarGravacao(); // Começa nova parte
-        })
-        .catch((err) => {
-          statusMsg.textContent = 'Erro no upload. Tente novamente. ' + err;
-          console.error(err);
-          // NÃO reinicia a gravação automaticamente em caso de erro
-        });
-    }).catch((err) => {
-      console.error("Erro na conversão/processamento:", err);
-      statusMsg.textContent = 'Falha na conversão automática para MP3.';
-if (storageSink) await storageSink.clear();
-
-
-    });
-  }
-};
-
+          iniciarGravacao();
+        } catch (err) {
+          console.error("Erro na conversão/processamento:", err);
+          statusMsg.textContent = 'Falha na conversão automática para MP3.';
+          if (storageSink) await storageSink.clear();
+        }
+      }
+    };
 
     mediaRecorder.start();
   }).catch(err => {
@@ -734,138 +561,136 @@ if (storageSink) await storageSink.clear();
   });
 }
 
-  function pausarGravacao() {
-    if (!mediaRecorder) return;
-    if (mediaRecorder.state === 'recording') {
-      mediaRecorder.pause();
-      btnPausar.textContent = "▶️ Retomar";
-      statusMsg.textContent = 'Gravação pausada.';
-    } else if (mediaRecorder.state === 'paused') {
-      mediaRecorder.resume();
-      btnPausar.textContent = "⏸️ Pausar";
-      statusMsg.textContent = 'Gravando...';
-    }
+function pausarGravacao() {
+  if (!mediaRecorder) return;
+  if (mediaRecorder.state === 'recording') {
+    mediaRecorder.pause();
+    btnPausar.textContent = "▶️ Retomar";
+    statusMsg.textContent = 'Gravação pausada.';
+  } else if (mediaRecorder.state === 'paused') {
+    mediaRecorder.resume();
+    btnPausar.textContent = "⏸️ Pausar";
+    statusMsg.textContent = 'Gravando...';
   }
-function pararGravacao() {
+}
 
-liberarWakeLock();
-
+function pararGravacao() {  
+  liberarWakeLock();
   
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-    paradaSolicitadaPeloUsuario = true; // <-- Marcar que foi o usuário!
+    paradaSolicitadaPeloUsuario = true;
     gravandoAutomatico = false;
     mediaRecorder.stop();
     statusMsg.textContent = 'Aguarde: preparando o arquivo de áudio. Não feche esta janela!';
   }
 }
 
+function resetarGravador() {
+  btnGravar.disabled = false;
+  btnPausar.disabled = true;
+  btnPausar.textContent = "⏸️ Pausar";
+  btnParar.disabled = true;
+  audioPlayer.src = "";
+  audioPlayer.style.display = 'none';
+  btnUpload.style.display = 'none';
+  statusMsg.textContent = '';
+  audioBlobGlobal = null;
+  loteIdAtual = null;
+}
 
-  function resetarGravador() {
-    btnGravar.disabled = false;
-    btnPausar.disabled = true;
-    btnPausar.textContent = "⏸️ Pausar";
-    btnParar.disabled = true;
-    audioPlayer.src = "";
-    audioPlayer.style.display = 'none';
-    btnUpload.style.display = 'none';
-    statusMsg.textContent = '';
-    audioBlobGlobal = null;
-    loteIdAtual = null;
-  }
-
-  function convertToMp3WithProcessing(webmBlob) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = function () {
-        const arrayBuffer = this.result;
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
-          const offlineCtx = new OfflineAudioContext(1, audioBuffer.length, audioBuffer.sampleRate);
-          let input;
-          if (audioBuffer.numberOfChannels > 1) {
-            const left = audioBuffer.getChannelData(0);
-            const right = audioBuffer.getChannelData(1);
-            const mono = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
-            const monoData = mono.getChannelData(0);
-            for (let i = 0; i < audioBuffer.length; i++) {
-              monoData[i] = 0.5 * (left[i] + right[i]);
-            }
-            input = offlineCtx.createBufferSource();
-            input.buffer = mono;
-          } else {
-            input = offlineCtx.createBufferSource();
-            input.buffer = audioBuffer;
+// FUNÇÕES AUXILIARES
+function convertToMp3WithProcessing(webmBlob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function () {
+      const arrayBuffer = this.result;
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContext.decodeAudioData(arrayBuffer).then(audioBuffer => {
+        const offlineCtx = new OfflineAudioContext(1, audioBuffer.length, audioBuffer.sampleRate);
+        let input;
+        if (audioBuffer.numberOfChannels > 1) {
+          const left = audioBuffer.getChannelData(0);
+          const right = audioBuffer.getChannelData(1);
+          const mono = offlineCtx.createBuffer(1, audioBuffer.length, audioBuffer.sampleRate);
+          const monoData = mono.getChannelData(0);
+          for (let i = 0; i < audioBuffer.length; i++) {
+            monoData[i] = 0.5 * (left[i] + right[i]);
           }
-          const highpass = offlineCtx.createBiquadFilter();
-          highpass.type = "highpass";
-          highpass.frequency.value = 130;
-          const lowpass = offlineCtx.createBiquadFilter();
-          lowpass.type = "lowpass";
-          lowpass.frequency.value = 8000;
-          const gain = offlineCtx.createGain();
-          gain.gain.value = 2.5;
-          input.connect(highpass);
-          highpass.connect(lowpass);
-          lowpass.connect(gain);
-          gain.connect(offlineCtx.destination);
-          input.start();
-          offlineCtx.startRendering().then(processedBuffer => {
-            const samples = processedBuffer.getChannelData(0);
-            const sampleRate = processedBuffer.sampleRate;
-            const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96);
-            const intSamples = new Int16Array(samples.length);
-            for (let i = 0; i < samples.length; i++) {
-              intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
-            }
-            const maxSamples = 1152;
-            let mp3Data = [];
-            for (let i = 0; i < intSamples.length; i += maxSamples) {
-              const sampleChunk = intSamples.subarray(i, i + maxSamples);
-              const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
-              if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
-            }
-            const endBuf = mp3Encoder.flush();
-            if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
-            const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
-            resolve(mp3Blob);
-          }).catch(reject);
+          input = offlineCtx.createBufferSource();
+          input.buffer = mono;
+        } else {
+          input = offlineCtx.createBufferSource();
+          input.buffer = audioBuffer;
+        }
+        const highpass = offlineCtx.createBiquadFilter();
+        highpass.type = "highpass";
+        highpass.frequency.value = 130;
+        const lowpass = offlineCtx.createBiquadFilter();
+        lowpass.type = "lowpass";
+        lowpass.frequency.value = 8000;
+        const gain = offlineCtx.createGain();
+        gain.gain.value = 2.5;
+        input.connect(highpass);
+        highpass.connect(lowpass);
+        lowpass.connect(gain);
+        gain.connect(offlineCtx.destination);
+        input.start();
+        offlineCtx.startRendering().then(processedBuffer => {
+          const samples = processedBuffer.getChannelData(0);
+          const sampleRate = processedBuffer.sampleRate;
+          const mp3Encoder = new lamejs.Mp3Encoder(1, sampleRate, 96);
+          const intSamples = new Int16Array(samples.length);
+          for (let i = 0; i < samples.length; i++) {
+            intSamples[i] = Math.max(-32768, Math.min(32767, samples[i] * 32767));
+          }
+          const maxSamples = 1152;
+          let mp3Data = [];
+          for (let i = 0; i < intSamples.length; i += maxSamples) {
+            const sampleChunk = intSamples.subarray(i, i + maxSamples);
+            const mp3buf = mp3Encoder.encodeBuffer(sampleChunk);
+            if (mp3buf.length > 0) mp3Data.push(new Int8Array(mp3buf));
+          }
+          const endBuf = mp3Encoder.flush();
+          if (endBuf.length > 0) mp3Data.push(new Int8Array(endBuf));
+          const mp3Blob = new Blob(mp3Data, { type: 'audio/mp3' });
+          resolve(mp3Blob);
         }).catch(reject);
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(webmBlob);
-    });
-  }
-  
+      }).catch(reject);
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(webmBlob);
+  });
+}
 
-  function splitBlob(blob, partSize) {
-    const parts = [];
-    let offset = 0;
-    while (offset < blob.size) {
-      const end = Math.min(offset + partSize, blob.size);
-      parts.push(blob.slice(offset, end, blob.type));
-      offset = end;
-    }
-    return parts;
+function splitBlob(blob, partSize) {
+  const parts = [];
+  let offset = 0;
+  while (offset < blob.size) {
+    const end = Math.min(offset + partSize, blob.size);
+    parts.push(blob.slice(offset, end, blob.type));
+    offset = end;
   }
-  function getNextFileNumber(tipo) {
-    const key = 'contador_' + tipo;
-    let n = Number(localStorage.getItem(key)) || 1;
-    localStorage.setItem(key, n + 1);
-    return n;
-  }
+  return parts;
+}
 
-  function gerarNovoLoteId() {
+function getNextFileNumber(tipo) {
+  const key = 'contador_' + tipo;
+  let n = Number(localStorage.getItem(key)) || 1;
+  localStorage.setItem(key, n + 1);
+  return n;
+}
+
+function gerarNovoLoteId() {
   const key = 'contador_lote_audio';
   let n = Number(localStorage.getItem(key)) || 1;
   localStorage.setItem(key, n + 1);
-  return 'L' + n; // Exemplo: L1, L2, L3...
+  return 'L' + n;
 }
 
-  async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, tentativas = 1) {
+async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, tentativas = 1) {
   const nome = ehUltimaParte
-  ? `audio_lote_${loteIdAtual}_partefinal.mp3`
-  : `audio_lote_${loteIdAtual}_parte${parteNum}.mp3`;
-
+    ? `audio_lote_${loteIdAtual}_partefinal.mp3`
+    : `audio_lote_${loteIdAtual}_parte${parteNum}.mp3`;
 
   const metadata = {
     name: nome,
@@ -874,9 +699,8 @@ liberarWakeLock();
   };
 
   try {
-    // Timeout control
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2 * 60 * 1000); // 2 min
+    const timeout = setTimeout(() => controller.abort(), 2 * 60 * 1000);
 
     const start = await fetch(
       "https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id",
@@ -899,7 +723,6 @@ liberarWakeLock();
       return;
     }
 
-    // Upload real da parte
     const put = await fetch(uploadURL, {
       method: "PUT",
       headers: {
@@ -928,9 +751,8 @@ liberarWakeLock();
   }
 }
 
-
-
- function abrirPastasReunioes() {
+// FUNÇÕES DOS MODAIS - CORRIGIDAS
+function abrirPastasReunioes() {
   modalPastaReunioes.classList.add('open');
   listarArquivosReunioes();
 }
@@ -942,14 +764,172 @@ function fecharPastasReunioes() {
   document.getElementById('statusMsgReunioes').textContent = "";
 }
 
- async function listarArquivosReunioes() {
+function abrirModalBrutos() {
+  modalBrutos.classList.add('open');
+  listarArquivosBrutos();
+}
+
+function fecharModalBrutos() {
+  modalBrutos.classList.remove('open');
+  document.getElementById('listaArquivosBrutos').innerHTML = "";
+  document.getElementById('statusMsgBrutos').textContent = "";
+}
+
+async function listarArquivosBrutos() {
+  if (!accessToken) {
+    document.getElementById('statusMsgBrutos').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgBrutos').textContent = 'Carregando arquivos...';
+  try {
+    const pastaId = PASTA_AUDIOS_ID;
+    const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType contains 'audio/'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        🎵 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosBrutos').innerHTML = html;
+    document.getElementById('statusMsgBrutos').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgBrutos').textContent = 'Erro ao buscar arquivos.';
+  }
+}
+
+function abrirModalPdfs() {
+  modalPdfs.classList.add('open');
+  listarArquivosPdfs();
+}
+
+function fecharModalPdfs() {
+  modalPdfs.classList.remove('open');
+  document.getElementById('listaArquivosPdfs').innerHTML = "";
+  document.getElementById('statusMsgPdfs').textContent = "";
+}
+
+async function listarArquivosPdfs() {
+  if (!accessToken) {
+    document.getElementById('statusMsgPdfs').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgPdfs').textContent = 'Carregando arquivos...';
+
+  const pastaId = PASTA_PDF_ID;
+  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType='application/pdf'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+  try {
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        📄 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosPdfs').innerHTML = html;
+    document.getElementById('statusMsgPdfs').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgPdfs').textContent = 'Erro ao buscar arquivos.';
+  }
+}
+
+function abrirModalAtas() {
+  modalAtas.classList.add('open');
+  listarArquivosAtas();
+}
+
+function fecharModalAtas() {
+  modalAtas.classList.remove('open');
+  document.getElementById('listaArquivosAtas').innerHTML = "";
+  document.getElementById('statusMsgAtas').textContent = "";
+}
+
+async function listarArquivosAtas() {
+  if (!accessToken) {
+    document.getElementById('statusMsgAtas').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgAtas').textContent = 'Carregando atas...';
+
+  const pastaId = PASTA_ATASREUNIOES_ID;
+  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+  try {
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        🧠 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosAtas').innerHTML = html;
+    document.getElementById('statusMsgAtas').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgAtas').textContent = 'Erro ao buscar atas.';
+  }
+}
+
+function abrirModalRelatorios() {
+  modalRelatorios.classList.add('open');
+  listarArquivosRelatorios();
+}
+
+function fecharModalRelatorios() {
+  modalRelatorios.classList.remove('open');
+  document.getElementById('listaArquivosRelatorios').innerHTML = "";
+  document.getElementById('statusMsgRelatorios').textContent = "";
+}
+
+async function listarArquivosRelatorios() {
+  if (!accessToken) {
+    document.getElementById('statusMsgRelatorios').textContent = 'Conecte com o Google Drive.';
+    return;
+  }
+  document.getElementById('statusMsgRelatorios').textContent = 'Carregando relatórios...';
+
+  const pastaId = PASTA_RELATORIOS_DOS_PDFS_ID;
+  const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
+  try {
+    const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
+    const data = await resp.json();
+    const arquivos = data.files || [];
+    let html = '<ul style="list-style:none;padding:0;">';
+    arquivos.forEach(arq => {
+      html += `<li style="margin-bottom:12px;">
+        📄 <a href="${arq.webViewLink}" target="_blank" style="font-size:1.05rem;">${arq.name}</a>
+        <span style="color:#9bbdfa; font-size:0.92rem;"> (${new Date(arq.createdTime).toLocaleString()})</span>
+        <button onclick="excluirArquivoDrive('${arq.id}', this)" title="Excluir" style="margin-left:10px; color:#c00; background:none; border:none; font-size:1.2rem; cursor:pointer;">🗑️</button>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('listaArquivosRelatorios').innerHTML = html;
+    document.getElementById('statusMsgRelatorios').textContent = '';
+  } catch (e) {
+    document.getElementById('statusMsgRelatorios').textContent = 'Erro ao buscar relatórios.';
+  }
+}
+
+async function listarArquivosReunioes() {
   if (!accessToken) {
     document.getElementById('statusMsgReunioes').textContent = 'Conecte com o Google Drive.';
     return;
   }
   document.getElementById('statusMsgReunioes').textContent = 'Carregando arquivos...';
 
-  // Helper interna para buscar arquivos de cada pasta
   async function buscarArquivos(pastaId) {
     const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents&fields=files(id,name,mimeType,webViewLink,createdTime,owners,permissions)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
@@ -958,13 +938,11 @@ function fecharPastasReunioes() {
   }
 
   try {
-    // Busca nas duas pastas
     const [arquivosUsuario, arquivosAutomatizados] = await Promise.all([
       buscarArquivos(PASTA_AUDIOS_ID),
       buscarArquivos(PASTA_ATASREUNIOES_ID)
     ]);
 
-    // Lista de arquivos do usuário (áudio bruto)
     let htmlUsuario = '<ul style="list-style:none;padding:0;">';
     arquivosUsuario.forEach(arq => {
       let icon = "📄";
@@ -978,7 +956,6 @@ function fecharPastasReunioes() {
     });
     htmlUsuario += '</ul>';
 
-    // Lista de arquivos automatizados (atas)
     let htmlAutomatizados = '<ul style="list-style:none;padding:0;">';
     arquivosAutomatizados.forEach(arq => {
       let icon = "🧠";
@@ -1000,8 +977,7 @@ function fecharPastasReunioes() {
   } catch (e) {
     document.getElementById('statusMsgReunioes').textContent = 'Erro ao buscar arquivos.';
   }
-} 
-
+}
 
 async function excluirArquivoDrive(fileId, btn) {
   if (!confirm('Tem certeza que deseja excluir este arquivo?')) return;
@@ -1017,7 +993,12 @@ async function excluirArquivoDrive(fileId, btn) {
     );
     if (resp.status === 204) {
       alert('Arquivo excluído!');
-      listarArquivosReunioes && listarArquivosReunioes();
+      // Recarrega listas se estiverem abertas
+      if (modalPastaReunioes.classList.contains('open')) listarArquivosReunioes();
+      if (modalBrutos.classList.contains('open')) listarArquivosBrutos();
+      if (modalPdfs.classList.contains('open')) listarArquivosPdfs();
+      if (modalAtas.classList.contains('open')) listarArquivosAtas();
+      if (modalRelatorios.classList.contains('open')) listarArquivosRelatorios();
     } else {
       alert('Erro ao excluir.');
     }
@@ -1053,59 +1034,65 @@ async function salvarPdfNoDrive() {
       body: form,
     });
     const result = await response.json();
-        if(result.id){
-            statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
-        }else{
-            statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
-        }
-    } catch(e){
-        statusMsgPdf.textContent = 'Erro na conexão com o Google Drive.';
+    if(result.id){
+      statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
+    }else{
+      statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
     }
+  } catch(e){
+    statusMsgPdf.textContent = 'Erro na conexão com o Google Drive.';
+  }
 }
 
-  
-
-  async function getUserInfoGoogle() {
+async function getUserInfoGoogle() {
   if (!accessToken) return;
   try {
     const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { 'Authorization': 'Bearer ' + accessToken }
     });
     const data = await resp.json();
-    // Troca logo pela foto do usuário Google
-    if (data.picture) {
+    if (data.picture && profileLogo) {
       profileLogo.src = data.picture;
       profileLogo.alt = "Foto do usuário";
     }
-    // Mostra nome do usuário abaixo da logo
-    if (data.name) {
+    if (data.name && userNameSpan) {
       userNameSpan.textContent = data.name;
-    } else {
-      userNameSpan.textContent = "";
     }
-    // Mensagem de status conectada
-    statusMsg.textContent = `Conectado como ${data.name || data.email || 'usuário Google'}`;
+    if (statusMsg) {
+      statusMsg.textContent = `Conectado como ${data.name || data.email || 'usuário Google'}`;
+    }
   } catch (e) {
-    statusMsg.textContent = "Erro ao buscar dados do usuário Google.";
+    if (statusMsg) {
+      statusMsg.textContent = "Erro ao buscar dados do usuário Google.";
+    }
   }
 }
 
-  function googleSignOut() {
+function googleSignOut() {
   accessToken = '';
-  profileLogo.src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
-  profileLogo.alt = "Logo";
-  userNameSpan.textContent = "";
-  statusMsg.textContent = "Faça login para conectar ao Google Drive.";
+  localStorage.removeItem('google_access_token');
+  if (profileLogo) {
+    profileLogo.src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
+    profileLogo.alt = "Logo";
+  }
+  if (userNameSpan) {
+    userNameSpan.textContent = "";
+  }
+  if (statusMsg) {
+    statusMsg.textContent = "Faça login para conectar ao Google Drive.";
+  }
 }
 
-  function abrirLerProjeto() {
+function abrirLerProjeto() {
   modalLerProjeto.classList.add('open');
   resetarLerProjeto();
 }
+
 function fecharLerProjeto() {
   modalLerProjeto.classList.remove('open');
   resetarLerProjeto();
 }
+
 function resetarLerProjeto() {
   inputPdf.value = "";
   pdfFileName.textContent = "";
@@ -1114,17 +1101,14 @@ function resetarLerProjeto() {
   pdfBlobGlobal = null;
 }
 
-
-
-
-  function iniciarVisualizador(stream) {
+function iniciarVisualizador(stream) {
   const canvas = document.getElementById('audioVisualizer');
   const canvasCtx = canvas.getContext('2d');
   canvas.style.display = 'block';
 
   audioContext = new (window.AudioContext || window.webkitAudioContext)();
   analyser = audioContext.createAnalyser();
-  analyser.fftSize = 64; // Menos barras = mais leve
+  analyser.fftSize = 64;
 
   source = audioContext.createMediaStreamSource(stream);
   source.connect(analyser);
@@ -1158,51 +1142,7 @@ function pararVisualizador() {
   analyser = null;
   source = null;
 }
-
-  
-
-
 </script>
 
-
-  <!-- MODAL PASTA ATAS DE REUNIÃO -->
-<div class="modal-bg" id="modalPastaReunioes">
-  <div class="modal-main" style="min-width:350px;max-width:98vw;">
-    <button class="close-btn" id="btnClosePastaReunioes" type="button">&times;</button>
-    <h3>Lista de arquivos</h3>
-    <div style="display:flex; gap:24px; width:100%;">
-      <div style="flex:1; border-right:2px solid #e0e4ee; padding-right:12px;">
-        <div style="font-weight:600; color:#3576f6; margin-bottom:4px;">Áudio bruto do usuário</div>
-        <div id="listaArquivosReunioesUsuario" style="max-height:270px; overflow:auto;"></div>
-      </div>
-      <div style="flex:1; padding-left:12px;">
-        <div style="font-weight:600; color:#2254a6; margin-bottom:4px;">ATA da reunião</div>
-        <div id="listaArquivosReunioesAutomatizados" style="max-height:270px; overflow:auto;"></div>
-      </div>
-    </div>
-    <div id="statusMsgReunioes" class="status-msg"></div>
-  </div>
-</div>
-
-
-<div class="modal-bg" id="modalBrutos">
-  <div class="modal-main" style="min-width:350px;max-width:98vw;">
-    <button class="close-btn" id="btnCloseBrutos" type="button">&times;</button>
-    <h3>Áudios Brutos</h3>
-    <div id="listaArquivosBrutos" style="max-height:320px; overflow:auto;"></div>
-    <div id="statusMsgBrutos" class="status-msg"></div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-  </body>
-
-  
+</body>
 </html>
