@@ -156,12 +156,22 @@
 
 <script>
 function renovarAccessTokenPeriodicamente() {
-  // Renova silenciosamente o token de acesso Google
   if (tokenClient) {
-    tokenClient.requestAccessToken({ prompt: '' });
+    try {
+      // Tenta renovar sem prompt algum
+      tokenClient.requestAccessToken({ prompt: '' });
+    } catch (e) {
+      // Caso dê erro, pode ser porque não foi possível renovar silenciosamente
+      console.warn('Falha ao renovar token silenciosamente:', e);
+      // Aqui, pode alertar o usuário, salvar o áudio temporário, ou pausar gravação.
+      // Exemplo:
+      statusMsg.textContent = "Sessão expirada. Toque na logo para renovar o login do Google Drive.";
+      // Opcional: pausar gravação automaticamente ou salvar o progresso
+    }
   }
-  setTimeout(renovarAccessTokenPeriodicamente, 20 * 60 * 1000); // 20 minutos
+  setTimeout(renovarAccessTokenPeriodicamente, 20 * 60 * 1000);
 }
+
 
 /*****************************************************************
  *  StorageSink  –  salva chunks de áudio de forma híbrida
