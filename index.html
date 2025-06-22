@@ -134,8 +134,12 @@
   </div>
 </div>
 
-  
+  <script src="https://unpkg.com/idb@7/build/iife/index-min.js"></script>
+
 <script>
+
+
+  
 
 function renovarAccessTokenPeriodicamente() {
   // Renova silenciosamente o token de acesso Google
@@ -143,29 +147,75 @@ function renovarAccessTokenPeriodicamente() {
   setTimeout(renovarAccessTokenPeriodicamente, 20 * 60 * 1000); // 20 minutos
 }
 
-  
-function salvarChunksNoStorage(chunks) {
-  // Converte os chunks para base64 (precisa serializar para texto)
-  const reader = new FileReader();
-  reader.onload = function () {
-    localStorage.setItem('audio_chunks_temp', reader.result);
-  };
-  const blob = new Blob(chunks, { type: 'audio/webm' });
-  reader.readAsDataURL(blob);
+
+
+/*****************************************************************
+ *  StorageSink  –  salva chunks de áudio de forma híbrida
+ *  1º tenta File-System Access API (OPFS)  melhor p/ mobile Chromium
+ *  2º fallback automático p/ IndexedDB usando idb
+ *****************************************************************/
+class StorageSink {
+  static async create() {
+    const fsOk = ('showSaveFilePicker' in window) && ('navigator' in window);
+    const sink         = new StorageSink();
+    sink.useFS         = fsOk;
+    sink.fileHandle    = null;
+    sink.writable      = null;
+    sink.db            = null;
+    sink.store         = null;
+    if (fsOk) {
+      // Origin-private file system (não pede permissão visual)
+      const root = await navigator.storage.getDirectory();
+      sink.fileHandle = await root.getFileHandle('temp_audio.webm', {create:true});
+      sink.writable   = await sink.fileHandle.createWritable();
+    } else {
+      // IndexedDB (fallback)
+      sink.db    = await idb.openDB('fulljob-audio', 1, {
+        upgrade(db){ db.createObjectStore('chunks', {autoIncrement:true}); }
+      });
+      sink.store = sink.db.transaction('chunks','readwrite').objectStore('chunks');
+    }
+    return sink;
+  }
+
+  async appendChunk(chunk) {
+    if (this.useFS) {
+      await this.writable.write(chunk);
+    } else {
+      await this.store.add(chunk);
+    }
+  }
+
+  /** devolve Array<Blob> com todos os chunks na ordem gravada */
+  async readAll() {
+    if (this.useFS) {
+      await this.writable.close();                     // garante flush
+      const file = await this.fileHandle.getFile();    // Blob completo
+      // precisamos devolvê-lo em chunks ― 1 só já resolve
+      return [file];
+    } else {
+      const tx   = this.db.transaction('chunks');
+      const all  = await tx.objectStore('chunks').getAll();
+      return all;
+    }
+  }
+
+  async clear() {
+    if (this.useFS) {
+      await this.writable.truncate(0);
+    } else {
+      const tx = this.db.transaction('chunks','readwrite');
+      await tx.objectStore('chunks').clear();
+    }
+  }
 }
-function limparChunksNoStorage() {
-  localStorage.removeItem('audio_chunks_temp');
-}
-
-
-
-
-
+/* ------------------------------------------------------------- */
 
 
   
 
 let wakeLock = null;
+let storageSink;   // instância de StorageSink
 
 // Solicita o Wake Lock (tela acesa)
 async function ativarWakeLock() {
@@ -238,24 +288,24 @@ let gravandoAutomatico = false;
 let audioContext = null, analyser = null, source = null, visualizerAnimationId = null;
 
 
- 
-window.onload = function() {
-  // Recuperação automática
-  const audioTemp = localStorage.getItem('audio_chunks_temp');
-  if (audioTemp) {
-    if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
-      // Recupera para o player
-      const blob = dataURLtoBlob(audioTemp);
-      audioPlayer.src = URL.createObjectURL(blob);
-      audioPlayer.style.display = 'block';
-      btnUpload.style.display = 'block';
-      statusMsg.textContent = 'Áudio recuperado de uma sessão anterior. Você pode ouvir ou salvar no Google Drive.';
-      audioBlobGlobal = blob;
-      limparChunksNoStorage();
-    } else {
-      limparChunksNoStorage();
-    }
+window.onload = async function() {
+  
+  // Recuperação automática (StorageSink)
+const antigos = await storageSink.readAll();
+if (antigos && antigos.length) {
+  const blob = new Blob(antigos, {type:'audio/webm'});
+  if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
+    audioPlayer.src = URL.createObjectURL(blob);
+    audioPlayer.style.display = 'block';
+    btnUpload.style.display    = 'block';
+    statusMsg.textContent      = 'Áudio recuperado de sessão anterior. Salve se desejar.';
+    audioBlobGlobal = blob;
   }
+  await storageSink.clear();
+}
+
+
+  
   // ...restante do seu onload...
 function dataURLtoBlob(dataurl) {
   let arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
@@ -337,7 +387,7 @@ btnUpload.onclick = async function() {
     }
   }
   statusMsg.textContent += '\nEnvio concluído!';
-  limparChunksNoStorage();
+  storageSink.clear();
 
 };
 
@@ -586,7 +636,7 @@ if (parteAtual === 1) {
     mediaRecorder.ondataavailable = e => {
       if (e.data.size > 0) {
         audioChunks.push(e.data);
-        salvarChunksNoStorage(audioChunks);
+        storageSink.appendChunk(e.data);
         
         tamanhoAcumulado += e.data.size;
 
@@ -617,7 +667,7 @@ if (parteAtual === 1) {
       btnUpload.style.display = 'block';
       statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
       audioBlobGlobal = mp3Blob;
-      limparChunksNoStorage();
+      storageSink.clear();
 
       // Reset a flag para a próxima gravação
       paradaSolicitadaPeloUsuario = false;
@@ -625,7 +675,7 @@ if (parteAtual === 1) {
       console.error("Erro na conversão/processamento:", err);
       statusMsg.textContent = 'Falha na conversão para MP3.';
       audioBlobGlobal = audioBlob;
-      limparChunksNoStorage();
+      storageSink.clear();
 
       paradaSolicitadaPeloUsuario = false;
     });
@@ -636,7 +686,7 @@ if (parteAtual === 1) {
     convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
       statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
       audioBlobGlobal = mp3Blob;
-limparChunksNoStorage();
+storageSink.clear();
 
       salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
         .then(() => {
@@ -653,7 +703,7 @@ limparChunksNoStorage();
     }).catch((err) => {
       console.error("Erro na conversão/processamento:", err);
       statusMsg.textContent = 'Falha na conversão automática para MP3.';
-limparChunksNoStorage();
+storageSink.clear();
 
     });
   }
