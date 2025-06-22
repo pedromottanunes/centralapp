@@ -289,6 +289,7 @@ let audioContext = null, analyser = null, source = null, visualizerAnimationId =
 
 
 window.onload = async function() {
+  storageSink = await StorageSink.create(); // <--- Adicione esta linha
   
   // Recuperação automática (StorageSink)
 const antigos = await storageSink.readAll();
