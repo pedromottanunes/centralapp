@@ -301,8 +301,9 @@ window.onload = async function() {
   try {
     storageSink = await StorageSink.create();
     // Recuperação automática (StorageSink)
-    const antigos = await storageSink.readAll();
-    if (antigos && antigos.length) {
+    if (storageSink) {
+  const antigos = await storageSink.readAll();
+  if (antigos && antigos.length) {
       const blob = new Blob(antigos, {type:'audio/webm'});
       if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
         audioPlayer.src = URL.createObjectURL(blob);
@@ -311,8 +312,7 @@ window.onload = async function() {
         statusMsg.textContent      = 'Áudio recuperado de sessão anterior. Salve se desejar.';
         audioBlobGlobal = blob;
       }
-      await storageSink.clear();
-    }
+if (storageSink) await storageSink.clear();    }
   } catch (erro) {
     // Se der erro, apenas mostra mensagem e continua
     alert('Falha ao inicializar armazenamento local (áudio não será salvo entre sessões).');
@@ -402,7 +402,7 @@ btnUpload.onclick = async function() {
     }
   }
   statusMsg.textContent += '\nEnvio concluído!';
-  storageSink.clear();
+  if (storageSink) await storageSink.clear();
 
 };
 
@@ -651,7 +651,7 @@ if (parteAtual === 1) {
     mediaRecorder.ondataavailable = e => {
       if (e.data.size > 0) {
         audioChunks.push(e.data);
-        storageSink.appendChunk(e.data);
+        if (storageSink) storageSink.appendChunk(e.data);
         
         tamanhoAcumulado += e.data.size;
 
@@ -682,7 +682,7 @@ if (parteAtual === 1) {
       btnUpload.style.display = 'block';
       statusMsg.textContent = 'Gravação finalizada. Clique em "Salvar no Google Drive".';
       audioBlobGlobal = mp3Blob;
-      storageSink.clear();
+if (storageSink) await storageSink.clear();
 
       // Reset a flag para a próxima gravação
       paradaSolicitadaPeloUsuario = false;
@@ -690,7 +690,7 @@ if (parteAtual === 1) {
       console.error("Erro na conversão/processamento:", err);
       statusMsg.textContent = 'Falha na conversão para MP3.';
       audioBlobGlobal = audioBlob;
-      storageSink.clear();
+if (storageSink) await storageSink.clear();
 
       paradaSolicitadaPeloUsuario = false;
     });
@@ -701,7 +701,8 @@ if (parteAtual === 1) {
     convertToMp3WithProcessing(audioBlob).then(mp3Blob => {
       statusMsg.textContent = `Salvando parte ${parteAtual} no Google Drive...`;
       audioBlobGlobal = mp3Blob;
-storageSink.clear();
+if (storageSink) await storageSink.clear();
+
 
       salvarNoDriveResumableParte(parteAtual, mp3Blob, false)
         .then(() => {
@@ -718,7 +719,8 @@ storageSink.clear();
     }).catch((err) => {
       console.error("Erro na conversão/processamento:", err);
       statusMsg.textContent = 'Falha na conversão automática para MP3.';
-storageSink.clear();
+if (storageSink) await storageSink.clear();
+
 
     });
   }
