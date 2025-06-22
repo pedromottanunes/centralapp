@@ -291,8 +291,11 @@ async function liberarWakeLock() {
 }
 
 window.onload = async function() {
+  // Inicializa o armazenamento local sem mostrar alert em caso de erro
   try {
     storageSink = await StorageSink.create();
+    console.log('StorageSink inicializado com sucesso');
+    
     // Recuperação automática
     if (storageSink) {
       const antigos = await storageSink.readAll();
@@ -313,7 +316,7 @@ window.onload = async function() {
       }
     }
   } catch (erro) {
-    alert('Falha ao inicializar armazenamento local (áudio não será salvo entre sessões).');
+    console.warn('Armazenamento local não disponível:', erro);
     storageSink = null;
   }
 
@@ -330,7 +333,7 @@ window.onload = async function() {
     callback: handleTokenResponse
   });
 
-  // TENTA LOGIN AUTOMÁTICO APENAS SE JÁ HOUVER TOKEN SALVO
+  // Login automático APENAS se já houver token válido salvo
   const savedToken = localStorage.getItem('google_access_token');
   if (savedToken) {
     accessToken = savedToken;
