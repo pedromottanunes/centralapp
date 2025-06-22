@@ -168,60 +168,94 @@ function renovarAccessTokenPeriodicamente() {
  *****************************************************************/
 class StorageSink {
   static async create() {
-    const fsOk = ('showSaveFilePicker' in window) && ('navigator' in window);
-    const sink         = new StorageSink();
-    sink.useFS         = fsOk;
-    sink.fileHandle    = null;
-    sink.writable      = null;
-    sink.db            = null;
-    sink.store         = null;
+    const sink = new StorageSink();
+    sink.useFS = false;
+    sink.fileHandle = null;
+    sink.writable = null;
+    sink.db = null;
+    sink.store = null;
+
+    // Tenta OPFS primeiro
+    const fsOk = ('showSaveFilePicker' in window) && ('navigator' in window) && ('storage' in navigator);
     if (fsOk) {
       try {
         const root = await navigator.storage.getDirectory();
         sink.fileHandle = await root.getFileHandle('temp_audio.webm', {create:true});
-        sink.writable   = await sink.fileHandle.createWritable();
+        sink.writable = await sink.fileHandle.createWritable();
+        sink.useFS = true;
+        console.log('OPFS inicializado com sucesso');
+        return sink;
       } catch(e) {
-        console.error('Erro OPFS:', e);
-        sink.useFS = false;
+        console.warn('OPFS não disponível:', e);
       }
     }
-    if (!sink.useFS) {
-      // IndexedDB (fallback)
-      sink.db    = await idb.openDB('fulljob-audio', 1, {
-        upgrade(db){ db.createObjectStore('chunks', {autoIncrement:true}); }
-      });
-      sink.store = sink.db.transaction('chunks','readwrite').objectStore('chunks');
+
+    // Fallback para IndexedDB
+    if (typeof idb !== 'undefined') {
+      try {
+        sink.db = await idb.openDB('fulljob-audio', 1, {
+          upgrade(db) { 
+            if (!db.objectStoreNames.contains('chunks')) {
+              db.createObjectStore('chunks', {autoIncrement:true}); 
+            }
+          }
+        });
+        console.log('IndexedDB inicializado com sucesso');
+        return sink;
+      } catch(e) {
+        console.warn('IndexedDB não disponível:', e);
+      }
+    } else {
+      console.warn('Biblioteca idb não carregada');
     }
+
+    // Se chegou aqui, nenhum storage funciona
+    console.warn('Nenhum sistema de armazenamento local disponível');
     return sink;
   }
 
   async appendChunk(chunk) {
-    if (this.useFS && this.writable) {
-      await this.writable.write(chunk);
-    } else if (this.store) {
-      await this.store.add(chunk);
+    try {
+      if (this.useFS && this.writable) {
+        await this.writable.write(chunk);
+      } else if (this.db) {
+        const tx = this.db.transaction('chunks', 'readwrite');
+        await tx.objectStore('chunks').add(chunk);
+        await tx.complete;
+      }
+    } catch(e) {
+      console.warn('Erro ao salvar chunk:', e);
     }
   }
 
   async readAll() {
-    if (this.useFS && this.fileHandle) {
-      if (this.writable) await this.writable.close();
-      const file = await this.fileHandle.getFile();
-      return [file];
-    } else if (this.db) {
-      const tx   = this.db.transaction('chunks');
-      const all  = await tx.objectStore('chunks').getAll();
-      return all;
+    try {
+      if (this.useFS && this.fileHandle) {
+        if (this.writable) await this.writable.close();
+        const file = await this.fileHandle.getFile();
+        return [file];
+      } else if (this.db) {
+        const tx = this.db.transaction('chunks', 'readonly');
+        const all = await tx.objectStore('chunks').getAll();
+        return all || [];
+      }
+    } catch(e) {
+      console.warn('Erro ao ler dados:', e);
     }
     return [];
   }
 
   async clear() {
-    if (this.useFS && this.writable) {
-      await this.writable.truncate(0);
-    } else if (this.db) {
-      const tx = this.db.transaction('chunks','readwrite');
-      await tx.objectStore('chunks').clear();
+    try {
+      if (this.useFS && this.writable) {
+        await this.writable.truncate(0);
+      } else if (this.db) {
+        const tx = this.db.transaction('chunks', 'readwrite');
+        await tx.objectStore('chunks').clear();
+        await tx.complete;
+      }
+    } catch(e) {
+      console.warn('Erro ao limpar dados:', e);
     }
   }
 }
@@ -291,17 +325,19 @@ async function liberarWakeLock() {
 }
 
 window.onload = async function() {
-  // Inicializa o armazenamento local sem mostrar alert em caso de erro
+  // Aguarda um pouco para garantir que as bibliotecas carregaram
+  await new Promise(resolve => setTimeout(resolve, 100));
+  
+  // Inicializa o armazenamento local
   try {
     storageSink = await StorageSink.create();
-    console.log('StorageSink inicializado com sucesso');
     
     // Recuperação automática
     if (storageSink) {
       const antigos = await storageSink.readAll();
-      if (antigos && antigos.length) {
+      if (antigos && antigos.length > 0) {
         const blob = new Blob(antigos, {type:'audio/webm'});
-        if (confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
+        if (blob.size > 0 && confirm('Uma gravação anterior não foi salva. Deseja recuperar?')) {
           audioPlayer = document.getElementById('audioPlayer');
           btnUpload = document.getElementById('btnUpload');
           statusMsg = document.getElementById('statusMsg');
@@ -316,7 +352,7 @@ window.onload = async function() {
       }
     }
   } catch (erro) {
-    console.warn('Armazenamento local não disponível:', erro);
+    console.warn('Erro na inicialização do armazenamento:', erro);
     storageSink = null;
   }
 
@@ -341,6 +377,8 @@ window.onload = async function() {
   }
 
   renovarAccessTokenPeriodicamente();
+
+  // ... resto do código permanece igual
 
   // OBTÉM TODAS AS REFERÊNCIAS DOS ELEMENTOS DOM
   btnGravar = document.getElementById('btnGravar');
