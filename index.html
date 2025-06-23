@@ -294,7 +294,6 @@ function initGoogle(cb) {
       scope: SCOPES,
       callback: handleTokenResponse
     });
- renovarAccessTokenPeriodicamente();   //  ✅ inicia o cron aqui
     googleReady = true;
     cb && cb();
   });
