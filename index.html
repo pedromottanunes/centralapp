@@ -449,12 +449,11 @@ function fecharGravador() {
   pararVisualizador();
 }
 
+/* ========  substitua DAQUI  ======== */
 function iniciarGravacao() {
   ativarWakeLock();
-  
-  if (parteAtual === 1) {
-    loteIdAtual = gerarNovoLoteId();
-  }
+
+  if (parteAtual === 1) loteIdAtual = gerarNovoLoteId();
 
   if (!navigator.mediaDevices || !window.MediaRecorder) {
     alert("Seu navegador não suporta gravação de áudio!");
@@ -463,85 +462,89 @@ function iniciarGravacao() {
 
   navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
     mediaRecorder = new MediaRecorder(stream);
+
     iniciarVisualizador(stream);
-    audioChunks = [];
-    tamanhoAcumulado = 0;
-    gravandoAutomatico = true;
-    parteAtual = 1;
+    audioChunks         = [];
+    tamanhoAcumulado    = 0;
+    gravandoAutomatico  = true;
+    parteAtual          = 1;
 
+    /* ---------- HANDLERS ---------- */
     mediaRecorder.ondataavailable = e => {
-      if (e.data.size > 0) {
-        audioChunks.push(e.data);
-              
-        tamanhoAcumulado += e.data.size;
-
-        if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
-          gravandoAutomatico = true;
-          mediaRecorder.stop();
-        }
+      if (!e.data.size) return;
+      audioChunks.push(e.data);
+      tamanhoAcumulado += e.data.size;
+      if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
+        gravandoAutomatico = true;
+        mediaRecorder.stop();                   // dispara onstop
       }
     };
 
-    mediaRecorder.onstart = () => {
-      btnGravar.disabled = true; 
-      btnPausar.disabled = false; 
-      btnParar.disabled = false;
+    mediaRecorder.onstart  = () => {
+      btnGravar.disabled = true;
+      btnPausar.disabled = false;
+      btnParar.disabled  = false;
       statusMsg.textContent = 'Gravando... (Pode iniciar a reunião)';
       audioPlayer.style.display = 'none';
-      btnUpload.style.display = 'none';
+      btnUpload.style.display  = 'none';
     };
 
-    mediaRecorder.onpause = () => { 
-      statusMsg.textContent = 'Gravação pausada.'; 
-    };
+    mediaRecorder.onpause  = () => statusMsg.textContent = 'Gravação pausada.';
+    mediaRecorder.onresume = () => statusMsg.textContent = `Gravando... (Parte ${parteAtual})`;
 
-    mediaRecorder.onresume = () => { 
-      statusMsg.textContent = 'Gravando... (Parte ' + parteAtual + ')'; 
-    };
+    /* -------- onstop CORRIGIDO -------- */
+    mediaRecorder.onstop = async () => {
+      audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
 
-    // FUNÇÃO ONSTOP CORRIGIDA
-  mediaRecorder.onstop = async () => {
-  if (paradaSolicitadaPeloUsuario) {
-    // PARADA MANUAL
-    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    try {
-      const mp3Blob = await convertToMp3WithProcessing(audioBlob);
-      await salvarAudioNoDispositivo(mp3Blob, `audio_${new Date().toISOString().replace(/[:.]/g, '-')}.mp3`);
-      statusMsg.textContent = 'Arquivo salvo no seu dispositivo. Deseja subir para o Google Drive? Clique em "Salvar no Google Drive" após fazer login.';
-      audioPlayer.src = URL.createObjectURL(mp3Blob);
-      audioPlayer.style.display = 'block';
-      btnUpload.style.display = 'block';
-      audioBlobGlobal = mp3Blob;
-      paradaSolicitadaPeloUsuario = false;
-    } catch (err) {
-      console.error("Erro na conversão/processamento:", err);
-      statusMsg.textContent = 'Falha na conversão para MP3.';
-      audioBlobGlobal = audioBlob;
-      paradaSolicitadaPeloUsuario = false;
-    }
-  } else {
-    // PARADA AUTOMÁTICA POR TAMANHO
-    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    try {
-      const mp3Blob = await convertToMp3WithProcessing(audioBlob);
-      if (accessToken) {
-        await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
-        parteAtual++;
-        statusMsg.textContent = `Parte ${parteAtual - 1} enviada. Continuando gravação...`;
-        if (gravandoAutomatico) {
-          audioChunks = [];
-          tamanhoAcumulado = 0;
-          mediaRecorder.start();
+      if (paradaSolicitadaPeloUsuario) {
+        /* ===== parada manual ===== */
+        try {
+          const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+          await salvarAudioNoDispositivo(mp3Blob,
+               `audio_${new Date().toISOString().replace(/[:.]/g,'-')}.mp3`);
+          statusMsg.textContent =
+            'Arquivo salvo. Se quiser enviar ao Drive, clique em "Salvar no Google Drive".';
+          audioPlayer.src  = URL.createObjectURL(mp3Blob);
+          audioPlayer.style.display = 'block';
+          btnUpload.style.display   = 'block';
+          audioBlobGlobal = mp3Blob;
+        } catch (err) {
+          console.error(err);
+          statusMsg.textContent = 'Erro ao converter para MP3.';
+        }
+        paradaSolicitadaPeloUsuario = false;
+
+      } else {
+        /* ===== parada automática por tamanho ===== */
+        try {
+          const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+          if (accessToken) {
+            await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
+            parteAtual++;
+            statusMsg.textContent = `Parte ${parteAtual - 1} enviada. Continuando...`;
+            if (gravandoAutomatico) {
+              audioChunks = [];
+              tamanhoAcumulado = 0;
+              mediaRecorder.start();            // reinicia nova parte
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          statusMsg.textContent = 'Erro ao converter para MP3.';
         }
       }
-    } catch (err) {
-      console.error("Erro na conversão:", err);
-      statusMsg.textContent = 'Erro na conversão para MP3.';
-    }
-  }
-}; // ✅ FECHAR A FUNÇÃO AQUI
+    };
+    /* -------- fim do onstop -------- */
 
-// ✅ MOVER ESTAS FUNÇÕES PARA FORA
+    mediaRecorder.start();                      // inicia 1ª parte
+  })
+  .catch(err => {
+    console.error('Erro ao acessar microfone:', err);
+    statusMsg.textContent = 'Erro: Não foi possível acessar o microfone.';
+  });
+} /* ========  até AQUI  ======== */
+
+/* === Estes três handlers agora ficam fora de iniciarGravacao() === */
 function pausarGravacao() {
   if (!mediaRecorder) return;
   if (mediaRecorder.state === 'recording') {
@@ -555,29 +558,29 @@ function pausarGravacao() {
   }
 }
 
-function pararGravacao() {  
+function pararGravacao() {
   liberarWakeLock();
-  
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     paradaSolicitadaPeloUsuario = true;
     gravandoAutomatico = false;
     mediaRecorder.stop();
-    statusMsg.textContent = 'Aguarde: preparando o arquivo de áudio. Não feche esta janela!';
+    statusMsg.textContent = 'Aguarde: preparando o arquivo de áudio...';
   }
 }
 
 function resetarGravador() {
   btnGravar.disabled = false;
   btnPausar.disabled = true;
+  btnParar.disabled  = true;
   btnPausar.textContent = "⏸️ Pausar";
-  btnParar.disabled = true;
   audioPlayer.src = "";
   audioPlayer.style.display = 'none';
-  btnUpload.style.display = 'none';
-  statusMsg.textContent = '';
+  btnUpload.style.display   = 'none';
+  statusMsg.textContent     = '';
   audioBlobGlobal = null;
-  loteIdAtual = null;
+  loteIdAtual     = null;
 }
+/* =============================================================== */
 
 // FUNÇÕES AUXILIARES
 function convertToMp3WithProcessing(webmBlob) {
