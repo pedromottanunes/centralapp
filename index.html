@@ -200,6 +200,13 @@ let tamanhoAcumulado = 0;
 let gravandoAutomatico = false;
 let audioContext = null, analyser = null, source = null, visualizerAnimationId = null;
 
+  /* ---------- utilidade: token ainda dentro da validade? ---------- */
+function tokenAindaValido() {
+  const exp = Number(localStorage.getItem('google_token_exp')) || 0; // millis
+  return accessToken && Date.now() < exp;
+}
+
+
 // Solicita o Wake Lock
 async function ativarWakeLock() {
   try {
@@ -292,40 +299,46 @@ function initGoogle(cb) {
 
 
   
-function ensureAccessToken(callback){
-  initGoogle(() => {          // garante tokenClient
-    // se já temos token salvo, tentamos renovar em modo silencioso
-    tokenClient.callback = (resp) => {
-      if (resp && resp.access_token) {
-        accessToken = resp.access_token;
-        localStorage.setItem('google_access_token', accessToken);
-        getUserInfoGoogle();
-        callback();            // prossegue
-      } else {
-        // falhou a renovação silenciosa → abre pop-up
-        pedirComPopup();
-      }
-    };
-    if (accessToken) {
-      // tenta renovar sem abrir pop-up
-      try { tokenClient.requestAccessToken({ prompt: '' }); }
-      catch { pedirComPopup(); }
-    } else {
-      pedirComPopup();
-    }
+/* ----------------------------------------------------
+   Garante um access_token válido.
+   - Se já estiver dentro da validade → chama callback() direto
+   - Senão → renova em background; se falhar, abre pop-up
+-----------------------------------------------------*/
+function ensureAccessToken(callback) {
 
-    function pedirComPopup(){
-      tokenClient.callback = (resp) => {               // mesmo callback
-        if (resp.error){ alert('Erro Google'); return; }
+  if (tokenAindaValido()) {           // ✅ já temos token fresco
+    callback();
+    return;
+  }
+
+  // precisa inicializar/renovar
+  initGoogle(() => {
+
+    // 1ª tentativa = silenciosa
+    tokenClient.callback = tratarResposta;
+    tokenClient.requestAccessToken({ prompt: '' });
+
+    // ---------
+    function tratarResposta(resp) {
+      if (resp && resp.access_token) {
+        // sucesso (silencioso ou pop-up)
         accessToken = resp.access_token;
         localStorage.setItem('google_access_token', accessToken);
+
+        const exp = Date.now() + ((resp.expires_in ?? 3600) - 300) * 1000;
+        localStorage.setItem('google_token_exp', exp);
+
         getUserInfoGoogle();
         callback();
-      };
-      tokenClient.requestAccessToken({ prompt: 'consent' });
+      } else {
+        // silencioso falhou → tenta pop-up
+        tokenClient.callback = tratarResposta;     // mesmo handler
+        tokenClient.requestAccessToken({ prompt: 'consent' });
+      }
     }
   });
 }
+
 
 
 
@@ -370,10 +383,10 @@ await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s
 
 
   // Login automático
- const savedToken = localStorage.getItem('google_access_token');
-if (savedToken) {
+const savedToken = localStorage.getItem('google_access_token');
+if (savedToken && tokenAindaValido()) {
   accessToken = savedToken;
-  getUserInfoGoogle();
+  getUserInfoGoogle(); 
   initGoogle(()=>{});          //  <<-- garante tokenClient e já liga o cron
 }
 if (savedToken) {
@@ -479,6 +492,13 @@ function handleTokenResponse(tokenResponse) {
   if (tokenResponse && tokenResponse.access_token) {
     accessToken = tokenResponse.access_token;
     localStorage.setItem('google_access_token', accessToken); // Salva o token
+
+// guarda horário de expiração (5 min antes, por segurança)
+const exp = Date.now() + ((tokenResponse.expires_in ?? 3600) - 300) * 1000;
+localStorage.setItem('google_token_exp', exp);
+
+
+    
     statusMsg.textContent = "Google Drive conectado.";
     getUserInfoGoogle();
   } else {
