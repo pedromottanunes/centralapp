@@ -68,8 +68,14 @@
         <button class="btn" id="btnPausar" type="button" disabled>⏸️ Pausar</button>
         <button class="btn" id="btnParar" type="button" disabled>⏹️ Parar</button>
       </div>
+    
       <audio id="audioPlayer" class="audio-player" controls style="display:none;"></audio>
       <button class="btn" id="btnUpload" style="width:100%;display:none;" type="button">Salvar no Google Drive</button>
+
+      <button class="btn" id="btnDownload"
+        style="width:100%;display:none;background:#eaeaea;color:#222;"
+        type="button">⬇️ Baixar no dispositivo</button>
+
       <div id="statusMsg" class="status-msg"></div>
     </div>
   </div>
@@ -406,12 +412,14 @@ if (!btnGravar || !btnPausar || !btnParar) {
   console.error('Elementos críticos não encontrados!');
   return;
 }
+    
+  audioPlayer = document.getElementById('audioPlayer');
 
   
-  
-  audioPlayer = document.getElementById('audioPlayer');
   btnUpload = document.getElementById('btnUpload');
+  btnDownload = document.getElementById('btnDownload');
   statusMsg = document.getElementById('statusMsg');
+  
   modalGravador = document.getElementById('modalGravador');
   btnCloseGravador = document.getElementById('btnCloseGravador');
   profileLogo = document.getElementById('profileLogo');
@@ -452,8 +460,16 @@ if (!btnGravar || !btnPausar || !btnParar) {
   btnGravar.onclick = iniciarGravacao;
   btnPausar.onclick = pausarGravacao;
   btnParar.onclick = pararGravacao;
+  
 btnUpload.onclick  = () => ensureAccessToken(subirAudio);   
-
+  
+ btnDownload.onclick = () => {
+   if (!audioBlobGlobal) return;        // nada a baixar ainda
+   salvarAudioNoDispositivo(
+     audioBlobGlobal,
+     `audio_${new Date().toISOString().replace(/[:.]/g,'-')}.mp3`
+   );
+ };
 
 btnAtas.onclick           = () => ensureAccessToken(abrirModalAtas);
 btnCloseAtas.onclick      = fecharModalAtas;
@@ -567,21 +583,25 @@ function iniciarGravacao() {
 
       if (paradaSolicitadaPeloUsuario) {
         /* ===== parada manual ===== */
-        try {
-          const mp3Blob = await convertToMp3WithProcessing(audioBlob);
-          await salvarAudioNoDispositivo(mp3Blob,
-               `audio_${new Date().toISOString().replace(/[:.]/g,'-')}.mp3`);
-          statusMsg.textContent =
-            'Arquivo salvo. Se quiser enviar ao Drive, clique em "Salvar no Google Drive".';
-          audioPlayer.src  = URL.createObjectURL(mp3Blob);
-          audioPlayer.style.display = 'block';
-          btnUpload.style.display   = 'block';
-          audioBlobGlobal = mp3Blob;
-        } catch (err) {
-          console.error(err);
-          statusMsg.textContent = 'Erro ao converter para MP3.';
-        }
-        paradaSolicitadaPeloUsuario = false;
+       try {
+    const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+
+    // guarda para uso posterior (upload ou download)
+    audioBlobGlobal = mp3Blob;
+
+    statusMsg.textContent =
+      'Gravação concluída. Escolha uma opção abaixo.';
+    audioPlayer.src  = URL.createObjectURL(mp3Blob);
+    audioPlayer.style.display = 'block';
+
+    btnDownload.style.display = 'block';   // mostra botão novo
+    btnUpload.style.display   = 'block';
+  } catch (err) {
+    console.error(err);
+    statusMsg.textContent = 'Erro ao converter para MP3.';
+  }
+  paradaSolicitadaPeloUsuario = false;
+
 
       } else {
         /* ===== parada automática por tamanho ===== */
@@ -645,6 +665,7 @@ function resetarGravador() {
   audioPlayer.src = "";
   audioPlayer.style.display = 'none';
   btnUpload.style.display   = 'none';
+  btnDownload.style.display = 'none';
   statusMsg.textContent     = '';
   audioBlobGlobal = null;
   loteIdAtual     = null;
