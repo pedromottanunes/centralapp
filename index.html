@@ -286,8 +286,7 @@ async function salvarAudioNoDispositivo(blob, nomeArquivoPadrao = 'gravacao.mp3'
 
 window.onload = async function() {
   // Aguarda um pouco para garantir que as bibliotecas carregaram
-  await new Promise(resolve => setTimeout(resolve, 100));
-  
+await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s  
   // Inicializa o armazenamento local
 
 
@@ -326,6 +325,14 @@ if (savedToken) {
   btnGravar = document.getElementById('btnGravar');
   btnPausar = document.getElementById('btnPausar');
   btnParar = document.getElementById('btnParar');
+
+if (!btnGravar || !btnPausar || !btnParar) {
+  console.error('Elementos críticos não encontrados!');
+  return;
+}
+
+  
+  
   audioPlayer = document.getElementById('audioPlayer');
   btnUpload = document.getElementById('btnUpload');
   statusMsg = document.getElementById('statusMsg');
@@ -493,30 +500,48 @@ function iniciarGravacao() {
     };
 
     // FUNÇÃO ONSTOP CORRIGIDA
-    mediaRecorder.onstop = async () => {
-if (paradaSolicitadaPeloUsuario) {
-  // PARADA MANUAL
-  audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-  try {
-    const mp3Blob = await convertToMp3WithProcessing(audioBlob);
-    // Chama função para salvar no dispositivo
-    await salvarAudioNoDispositivo(mp3Blob, `audio_${new Date().toISOString().replace(/[:.]/g, '-')}.mp3`);
-    // Depois de salvar, oferece subir para o Drive (pode automatizar o login/upload aqui depois)
-    statusMsg.textContent = 'Arquivo salvo no seu dispositivo. Deseja subir para o Google Drive? Clique em "Salvar no Google Drive" após fazer login.';
-    audioPlayer.src = URL.createObjectURL(mp3Blob);
-    audioPlayer.style.display = 'block';
-    btnUpload.style.display = 'block';
-    audioBlobGlobal = mp3Blob;
-    paradaSolicitadaPeloUsuario = false;
-  } catch (err) {
-    console.error("Erro na conversão/processamento:", err);
-    statusMsg.textContent = 'Falha na conversão para MP3.';
-    audioBlobGlobal = audioBlob;
-    paradaSolicitadaPeloUsuario = false;
+  mediaRecorder.onstop = async () => {
+  if (paradaSolicitadaPeloUsuario) {
+    // PARADA MANUAL
+    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    try {
+      const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+      await salvarAudioNoDispositivo(mp3Blob, `audio_${new Date().toISOString().replace(/[:.]/g, '-')}.mp3`);
+      statusMsg.textContent = 'Arquivo salvo no seu dispositivo. Deseja subir para o Google Drive? Clique em "Salvar no Google Drive" após fazer login.';
+      audioPlayer.src = URL.createObjectURL(mp3Blob);
+      audioPlayer.style.display = 'block';
+      btnUpload.style.display = 'block';
+      audioBlobGlobal = mp3Blob;
+      paradaSolicitadaPeloUsuario = false;
+    } catch (err) {
+      console.error("Erro na conversão/processamento:", err);
+      statusMsg.textContent = 'Falha na conversão para MP3.';
+      audioBlobGlobal = audioBlob;
+      paradaSolicitadaPeloUsuario = false;
+    }
+  } else {
+    // PARADA AUTOMÁTICA POR TAMANHO
+    audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    try {
+      const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+      if (accessToken) {
+        await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
+        parteAtual++;
+        statusMsg.textContent = `Parte ${parteAtual - 1} enviada. Continuando gravação...`;
+        if (gravandoAutomatico) {
+          audioChunks = [];
+          tamanhoAcumulado = 0;
+          mediaRecorder.start();
+        }
+      }
+    } catch (err) {
+      console.error("Erro na conversão:", err);
+      statusMsg.textContent = 'Erro na conversão para MP3.';
+    }
   }
-}
-};
+}; // ✅ FECHAR A FUNÇÃO AQUI
 
+// ✅ MOVER ESTAS FUNÇÕES PARA FORA
 function pausarGravacao() {
   if (!mediaRecorder) return;
   if (mediaRecorder.state === 'recording') {
