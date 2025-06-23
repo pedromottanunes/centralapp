@@ -156,23 +156,6 @@
 <script>
 
   
-function renovarAccessTokenPeriodicamente() {
-  if (tokenClient) {
-    try {
-      // Tenta renovar sem prompt algum
-      tokenClient.requestAccessToken({ prompt: '' });
-    } catch (e) {
-      // Caso dê erro, pode ser porque não foi possível renovar silenciosamente
-      console.warn('Falha ao renovar token silenciosamente:', e);
-      // Aqui, pode alertar o usuário, salvar o áudio temporário, ou pausar gravação.
-      // Exemplo:
-      statusMsg.textContent = "Sessão expirada. Toque na logo para renovar o login do Google Drive.";
-      // Opcional: pausar gravação automaticamente ou salvar o progresso
-    }
-  }
-  setTimeout(renovarAccessTokenPeriodicamente, 20 * 60 * 1000);
-}
-
 
 
 // DECLARAÇÃO DE TODAS AS VARIÁVEIS
@@ -393,7 +376,11 @@ if (savedToken) {
   getUserInfoGoogle();
   initGoogle(()=>{});          //  <<-- garante tokenClient e já liga o cron
 }
-
+if (savedToken) {
+accessToken = savedToken;
+ // NÃO chamamos initGoogle aqui: deixamos para a 1ª chamada de ensureAccessToken
+getUserInfoGoogle();
+}
 
   // ... resto do código permanece igual
 
@@ -455,19 +442,22 @@ if (!btnGravar || !btnPausar || !btnParar) {
 btnUpload.onclick  = () => ensureAccessToken(subirAudio);   
 
 
-  btnAtas.onclick = abrirModalAtas;
-  btnCloseAtas.onclick = fecharModalAtas;
-  btnRelatorios.onclick = abrirModalRelatorios;
-  btnCloseRelatorios.onclick = fecharModalRelatorios;
-  btnClosePastaReunioes.onclick = fecharPastasReunioes;
-  btnPastinhaBrutos.onclick = abrirPastasReunioes;
-  btnCloseBrutos.onclick = fecharModalBrutos;
+btnAtas.onclick           = () => ensureAccessToken(abrirModalAtas);
+btnCloseAtas.onclick      = fecharModalAtas;
 
-  document.getElementById('cardEnviarPdf').onclick = abrirLerProjeto;
-  btnCloseLerProjeto.onclick = fecharLerProjeto;
-  btnUploadPdf.onclick = salvarPdfNoDrive;
-  btnPastinhaPdfs.onclick = abrirModalPdfs;
-  btnClosePdfs.onclick = fecharModalPdfs;
+btnRelatorios.onclick     = () => ensureAccessToken(abrirModalRelatorios);
+btnCloseRelatorios.onclick= fecharModalRelatorios;
+
+btnClosePastaReunioes.onclick = fecharPastasReunioes;
+btnPastinhaBrutos.onclick     = () => ensureAccessToken(abrirPastasReunioes);
+btnCloseBrutos.onclick        = fecharModalBrutos;
+
+document.getElementById('cardEnviarPdf').onclick = abrirLerProjeto;
+btnCloseLerProjeto.onclick = fecharLerProjeto;
+btnUploadPdf.onclick       = salvarPdfNoDrive;
+btnPastinhaPdfs.onclick    = () => ensureAccessToken(abrirModalPdfs);
+btnClosePdfs.onclick       = fecharModalPdfs;
+
 
   inputPdf.onchange = function() {
     const file = inputPdf.files[0];
