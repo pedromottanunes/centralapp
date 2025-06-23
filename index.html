@@ -280,7 +280,25 @@ async function salvarAudioNoDispositivo(blob, nomeArquivoPadrao = 'gravacao.mp3'
   }
 }
 
+    /* ---------- inicialização sob-demanda ---------- */
+let googleReady = false;
 
+  
+function initGoogle(cb) {
+  if (googleReady) { cb && cb(); return; }
+
+  gapi.load('client', async () => {
+    await gapi.client.init({ apiKey: API_KEY });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: handleTokenResponse
+    });
+ renovarAccessTokenPeriodicamente();   //  ✅ inicia o cron aqui
+    googleReady = true;
+    cb && cb();
+  });
+}
 
 
 /* ----------------------------------------------------
@@ -359,34 +377,10 @@ async function subirAudio() {
   statusMsg.textContent += '\nEnvio concluído!';
 }
 
-
-  
-  
+ 
   
 
 window.onload = async function() {
-
-  /* ---------- inicialização sob-demanda ---------- */
-let googleReady = false;
-  
-function initGoogle(cb) {
-  if (googleReady) { cb && cb(); return; }
-
-  gapi.load('client', async () => {
-    await gapi.client.init({ apiKey: API_KEY });
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      callback: handleTokenResponse
-    });
- renovarAccessTokenPeriodicamente();   //  ✅ inicia o cron aqui
-    googleReady = true;
-    cb && cb();
-  });
-}
-
-
-
 
   
   // Aguarda um pouco para garantir que as bibliotecas carregaram
@@ -398,7 +392,7 @@ await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s
 if (savedToken) {
   accessToken = savedToken;
   getUserInfoGoogle();
-  
+  initGoogle(()=>{});          //  <<-- garante tokenClient e já liga o cron
 }
 
 
