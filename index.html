@@ -279,8 +279,111 @@ async function salvarAudioNoDispositivo(blob, nomeArquivoPadrao = 'gravacao.mp3'
 }
 
 
+/* ---------- inicialização sob-demanda ---------- */
+let googleReady = false;
+function initGoogle(cb) {
+  if (googleReady) { cb && cb(); return; }
+
+  gapi.load('client', async () => {
+    await gapi.client.init({ apiKey: API_KEY });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: handleTokenResponse
+    });
+    googleReady = true;
+    cb && cb();
+  });
+}
+
+/* ----------------------------------------------------
+   Garante que temos um access_token. 
+   Se já houver token, executa callback() imediatamente.
+   Caso contrário, dispara o login e chama callback
+   depois que o usuário autorizar.
+-----------------------------------------------------*/
+function ensureAccessToken(callback) {
+  if (accessToken) {
+    callback();                       // ✔️ já logado
+    return;
+  }
+
+  // pedimos um novo token apenas quando o botão for usado
+  tokenClient.callback = (resp) => {
+    if (resp.error) {
+      alert('Não foi possível autenticar no Google Drive.');
+      console.error(resp);
+      return;
+    }
+    accessToken = resp.access_token;
+    localStorage.setItem('google_access_token', accessToken);
+    getUserInfoGoogle();
+    callback();                       // ✔️ sobe o arquivo agora
+  };
+
+  // abre o popup de login/aprovação só neste momento
+  tokenClient.requestAccessToken({ prompt: 'consent' });
+}
 
 
+
+
+// ----------------------------------------------------
+// Faz o upload do áudio MP3 armazenado em audioBlobGlobal
+// ----------------------------------------------------
+async function subirAudio() {
+  if (!audioBlobGlobal) {
+    alert('Nenhum áudio convertido para enviar!');
+    return;
+  }
+
+  statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
+  const PART_SIZE = 10 * 1024 * 1024;               // 10 MB
+  const mp3Parts  = splitBlob(audioBlobGlobal, PART_SIZE);
+
+  if (mp3Parts.length === 1) {
+    await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
+  } else {
+    for (let i = 0; i < mp3Parts.length; i++) {
+      const ehUltima = (i === mp3Parts.length - 1);
+      statusMsg.textContent =
+        `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
+      await salvarNoDriveResumableParte(parteAtual + i,
+                                        mp3Parts[i],
+                                        ehUltima);
+    }
+  }
+  statusMsg.textContent += '\nEnvio concluído!';
+}
+
+
+  
+  
+let pendingAfterAuth = null;   // usado em handleTokenResponse
+
+async function subirAudio() {
+    statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
+    const PART_SIZE = 10 * 1024 * 1024;
+    const mp3Parts = splitBlob(audioBlobGlobal, PART_SIZE);
+
+    if (mp3Parts.length === 1) {
+      await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
+    } else {
+      for (let i = 0; i < mp3Parts.length; i++) {
+        const ehUltima = (i === mp3Parts.length - 1);
+        statusMsg.textContent = `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
+        await salvarNoDriveResumableParte(parteAtual + i, mp3Parts[i], ehUltima);
+      }
+    }
+    statusMsg.textContent += '\nEnvio concluído!';
+    
+  };
+
+
+
+
+
+  
 
   
 
@@ -298,17 +401,7 @@ await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s
 
   
   // Inicialização do Google API
-  gapi.load('client', () => { 
-    gapi.client.init({apiKey: API_KEY}).then(() => {
-      console.log('Google API Client inicializado');
-    }); 
-  });
-
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CLIENT_ID,
-    scope: SCOPES,
-    callback: handleTokenResponse
-  });
+ 
 
   // Login automático
  const savedToken = localStorage.getItem('google_access_token');
@@ -368,33 +461,16 @@ if (!btnGravar || !btnPausar || !btnParar) {
   statusMsgPdf = document.getElementById('statusMsgPdf');
 
   // EVENT LISTENERS
-  document.getElementById('logoArea').onclick = function() {
-    tokenClient.requestAccessToken({ prompt: 'select_account' });
-  };
+  logoArea.onclick = () => ensureAccessToken(()=>{});
+
 
   document.getElementById('cardGravar').onclick = abrirGravador;
   btnCloseGravador.onclick = fecharGravador;
   btnGravar.onclick = iniciarGravacao;
   btnPausar.onclick = pausarGravacao;
   btnParar.onclick = pararGravacao;
+btnUpload.onclick  = () => ensureAccessToken(subirAudio);   
 
-  btnUpload.onclick = async function() {
-    statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
-    const PART_SIZE = 10 * 1024 * 1024;
-    const mp3Parts = splitBlob(audioBlobGlobal, PART_SIZE);
-
-    if (mp3Parts.length === 1) {
-      await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
-    } else {
-      for (let i = 0; i < mp3Parts.length; i++) {
-        const ehUltima = (i === mp3Parts.length - 1);
-        statusMsg.textContent = `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
-        await salvarNoDriveResumableParte(parteAtual + i, mp3Parts[i], ehUltima);
-      }
-    }
-    statusMsg.textContent += '\nEnvio concluído!';
-    
-  };
 
   btnAtas.onclick = abrirModalAtas;
   btnCloseAtas.onclick = fecharModalAtas;
