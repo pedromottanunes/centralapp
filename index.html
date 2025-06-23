@@ -302,28 +302,36 @@ function initGoogle(cb) {
    Caso contrário, dispara o login e chama callback
    depois que o usuário autorizar.
 -----------------------------------------------------*/
-function ensureAccessToken(callback) {
-  if (accessToken) {
-    callback();                       // ✔️ já logado
+
+
+  
+function ensureAccessToken(callback){
+  // Se já temos token, executa e sai
+  if (accessToken){
+    callback();
     return;
   }
 
-  // pedimos um novo token apenas quando o botão for usado
-  tokenClient.callback = (resp) => {
-    if (resp.error) {
-      alert('Não foi possível autenticar no Google Drive.');
-      console.error(resp);
-      return;
-    }
-    accessToken = resp.access_token;
-    localStorage.setItem('google_access_token', accessToken);
-    getUserInfoGoogle();
-    callback();                       // ✔️ sobe o arquivo agora
-  };
+  // Garante que tokenClient já existe
+  initGoogle(()=>{
+    // Agora sim podemos usar tokenClient
+    tokenClient.callback = (resp)=>{
+      if (resp.error){
+        alert('Não foi possível autenticar no Google Drive.');
+        console.error(resp);
+        return;
+      }
+      accessToken = resp.access_token;
+      localStorage.setItem('google_access_token', accessToken);
+      getUserInfoGoogle();     // carrega foto/nome
+      callback();              // prossegue com a ação original
+    };
 
-  // abre o popup de login/aprovação só neste momento
-  tokenClient.requestAccessToken({ prompt: 'consent' });
+    // Abre o popup de consentimento só neste momento
+    tokenClient.requestAccessToken({ prompt: 'consent' });
+  });
 }
+
 
 
 
@@ -359,32 +367,6 @@ async function subirAudio() {
 
   
   
-let pendingAfterAuth = null;   // usado em handleTokenResponse
-
-async function subirAudio() {
-    statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
-    const PART_SIZE = 10 * 1024 * 1024;
-    const mp3Parts = splitBlob(audioBlobGlobal, PART_SIZE);
-
-    if (mp3Parts.length === 1) {
-      await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
-    } else {
-      for (let i = 0; i < mp3Parts.length; i++) {
-        const ehUltima = (i === mp3Parts.length - 1);
-        statusMsg.textContent = `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
-        await salvarNoDriveResumableParte(parteAtual + i, mp3Parts[i], ehUltima);
-      }
-    }
-    statusMsg.textContent += '\nEnvio concluído!';
-    
-  };
-
-
-
-
-
-  
-
   
 
 window.onload = async function() {
@@ -392,16 +374,8 @@ window.onload = async function() {
 await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s  
   // Inicializa o armazenamento local
 
-
-
-
-
-
-
-
   
-  // Inicialização do Google API
- 
+
 
   // Login automático
  const savedToken = localStorage.getItem('google_access_token');
