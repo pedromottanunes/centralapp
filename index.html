@@ -154,6 +154,8 @@
 <script src="https://apis.google.com/js/api.js"></script>
 
 <script>
+
+  
 function renovarAccessTokenPeriodicamente() {
   if (tokenClient) {
     try {
@@ -279,22 +281,7 @@ async function salvarAudioNoDispositivo(blob, nomeArquivoPadrao = 'gravacao.mp3'
 }
 
 
-/* ---------- inicialização sob-demanda ---------- */
-let googleReady = false;
-function initGoogle(cb) {
-  if (googleReady) { cb && cb(); return; }
 
-  gapi.load('client', async () => {
-    await gapi.client.init({ apiKey: API_KEY });
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: SCOPES,
-      callback: handleTokenResponse
-    });
-    googleReady = true;
-    cb && cb();
-  });
-}
 
 /* ----------------------------------------------------
    Garante que temos um access_token. 
@@ -306,29 +293,37 @@ function initGoogle(cb) {
 
   
 function ensureAccessToken(callback){
-  // Se já temos token, executa e sai
-  if (accessToken){
-    callback();
-    return;
-  }
-
-  // Garante que tokenClient já existe
-  initGoogle(()=>{
-    // Agora sim podemos usar tokenClient
-    tokenClient.callback = (resp)=>{
-      if (resp.error){
-        alert('Não foi possível autenticar no Google Drive.');
-        console.error(resp);
-        return;
+  initGoogle(() => {          // garante tokenClient
+    // se já temos token salvo, tentamos renovar em modo silencioso
+    tokenClient.callback = (resp) => {
+      if (resp && resp.access_token) {
+        accessToken = resp.access_token;
+        localStorage.setItem('google_access_token', accessToken);
+        getUserInfoGoogle();
+        callback();            // prossegue
+      } else {
+        // falhou a renovação silenciosa → abre pop-up
+        pedirComPopup();
       }
-      accessToken = resp.access_token;
-      localStorage.setItem('google_access_token', accessToken);
-      getUserInfoGoogle();     // carrega foto/nome
-      callback();              // prossegue com a ação original
     };
+    if (accessToken) {
+      // tenta renovar sem abrir pop-up
+      try { tokenClient.requestAccessToken({ prompt: '' }); }
+      catch { pedirComPopup(); }
+    } else {
+      pedirComPopup();
+    }
 
-    // Abre o popup de consentimento só neste momento
-    tokenClient.requestAccessToken({ prompt: 'consent' });
+    function pedirComPopup(){
+      tokenClient.callback = (resp) => {               // mesmo callback
+        if (resp.error){ alert('Erro Google'); return; }
+        accessToken = resp.access_token;
+        localStorage.setItem('google_access_token', accessToken);
+        getUserInfoGoogle();
+        callback();
+      };
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
   });
 }
 
@@ -370,11 +365,32 @@ async function subirAudio() {
   
 
 window.onload = async function() {
-  // Aguarda um pouco para garantir que as bibliotecas carregaram
-await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s  
-  // Inicializa o armazenamento local
+
+  /* ---------- inicialização sob-demanda ---------- */
+let googleReady = false;
+  
+function initGoogle(cb) {
+  if (googleReady) { cb && cb(); return; }
+
+  gapi.load('client', async () => {
+    await gapi.client.init({ apiKey: API_KEY });
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      callback: handleTokenResponse
+    });
+ renovarAccessTokenPeriodicamente();   //  ✅ inicia o cron aqui
+    googleReady = true;
+    cb && cb();
+  });
+}
+
+
+
 
   
+  // Aguarda um pouco para garantir que as bibliotecas carregaram
+await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s  
 
 
   // Login automático
@@ -382,7 +398,7 @@ await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s
 if (savedToken) {
   accessToken = savedToken;
   getUserInfoGoogle();
-  renovarAccessTokenPeriodicamente(); // só chama se já estiver logado
+  
 }
 
 
