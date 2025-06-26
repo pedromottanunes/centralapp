@@ -184,6 +184,10 @@ let modalPastaReunioes = null, btnClosePastaReunioes = null; // ADICIONADO
 let userNameSpan = null; // ADICIONADO
 let profileLogo = null;
 
+
+
+  
+
 // Google Drive params
 const TAMANHO_MAX_PARTE = 0.2 * 1024 * 1024;
 const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
@@ -203,12 +207,36 @@ let tokenClient = null;
 
 // DOM elements refs
 let btnGravar, btnPausar, btnParar, audioPlayer, btnUpload, statusMsg, modalGravador, btnCloseGravador;
-let mediaRecorder, audioChunks = [], audioBlob, audioBlobGlobal = null;
+let mediaRecorder,  = [], audioBlob, audioBlobGlobal = null;
 let modalLerProjeto, btnCloseLerProjeto, inputPdf, pdfFileName, btnUploadPdf, statusMsgPdf, pdfBlobGlobal = null;
 let parteAtual = 1;
 let tamanhoAcumulado = 0;
 let gravandoAutomatico = false;
 let audioContext = null, analyser = null, source = null, visualizerAnimationId = null;
+
+
+/* ---------- MP3 worker (streaming) ----------------------------- */
+let mp3Worker   = null;
+let mp3Pieces   = [];                // Uint8Arrays vindas do worker
+let workerReady = false;
+
+function initMp3Worker(sr){
+  mp3Worker   = new Worker('worker_mp3.js');
+  mp3Worker.postMessage({ cmd:'init', sampleRate: sr });
+  mp3Worker.onmessage = e => {
+    // terminou?
+    if (e.data && e.data.done){
+       audioBlobGlobal = new Blob(mp3Pieces, { type:'audio/mp3' });
+       workerReady = false;          // zera para próxima gravação
+       return;
+    }
+    // pedaço normal
+    mp3Pieces.push(new Uint8Array(e.data));
+  };
+  workerReady = true;
+}
+
+  
 
 
   /* ---------- utilidade: token ainda dentro da validade? ---------- */
@@ -560,23 +588,44 @@ function iniciarGravacao() {
 
   navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
     mediaRecorder = new MediaRecorder(stream);
+    
+ const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
+initMp3Worker(tmpCtx.sampleRate);   // diz ao worker qual SR usar
+tmpCtx.close();                     // libera imediatamente o recurso
+    
 
     iniciarVisualizador(stream);
-    audioChunks         = [];
+             = [];
     tamanhoAcumulado    = 0;
     gravandoAutomatico  = true;
     parteAtual          = 1;
 
+
     /* ---------- HANDLERS ---------- */
-    mediaRecorder.ondataavailable = e => {
-      if (!e.data.size) return;
-      audioChunks.push(e.data);
-      tamanhoAcumulado += e.data.size;
-      if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
-        gravandoAutomatico = true;
-        mediaRecorder.stop();                   // dispara onstop
-      }
-    };
+   mediaRecorder.ondataavailable = async e => {
+  if (!e.data.size) return;               // nada a fazer
+
+  /* 1️⃣ — WebM  ➜  PCM ------------------------------------------------ */
+  const arrayBuf = await e.data.arrayBuffer();
+
+  const ctx      = new (window.AudioContext || window.webkitAudioContext)();
+  const audioBuf = await ctx.decodeAudioData(arrayBuf);   // decodifica Opus/WebM
+  const pcm      = audioBuf.getChannelData(0);            // mono (L) – já Float32
+  ctx.close();                                            // libera o contexto
+
+  /* 2️⃣ — envia PCM para o worker  (zero-copy) ------------------------ */
+  if (workerReady)
+    mp3Worker.postMessage({ cmd: 'encode', buf: pcm }, [pcm.buffer]);
+
+  /* 3️⃣ — CONTROLE de “parte de 10 MB” permanece igual ---------------
+        Se quiser continuar parando a gravação a cada 10 MB, deixe:
+  */
+  tamanhoAcumulado += e.data.size;
+  if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
+    gravandoAutomatico = true;           // seu flag original
+    mediaRecorder.stop();                // dispara onstop (passo 5)
+  }
+};
 
     mediaRecorder.onstart  = () => {
       btnGravar.disabled = true;
@@ -590,52 +639,42 @@ function iniciarGravacao() {
     mediaRecorder.onpause  = () => statusMsg.textContent = 'Gravação pausada.';
     mediaRecorder.onresume = () => statusMsg.textContent = `Gravando... (Parte ${parteAtual})`;
 
-    /* -------- onstop CORRIGIDO -------- */
-    mediaRecorder.onstop = async () => {
-      audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+/* -------- onstop  (streaming MP3) -------- */
+mediaRecorder.onstop = async () => {
 
-      if (paradaSolicitadaPeloUsuario) {
-        /* ===== parada manual ===== */
-       try {
-    const mp3Blob = await convertToMp3WithProcessing(audioBlob);
+  /* 1️⃣  encerra o encoder  */
+  workerFlushDone = new Promise(r => workerFlushDoneResolve = r);
+  mp3Worker.postMessage({ cmd: 'flush' });
+  await workerFlushDone;                 // ← espera o worker
 
-    // guarda para uso posterior (upload ou download)
-    audioBlobGlobal = mp3Blob;
+  /* 2️⃣  Blob final desta parte  */
+  const mp3Blob = new Blob(mp3Parts, { type: 'audio/mp3' });
+  mp3Parts.length = 0;                   // zera p/ próxima parte
 
-    statusMsg.textContent =
-      'Gravação concluída. Escolha uma opção.';
-    audioPlayer.src  = URL.createObjectURL(mp3Blob);
+  /* 3️⃣  Decide o que fazer           */
+  if (paradaSolicitadaPeloUsuario) {           // —— PARADA MANUAL
+    paradaSolicitadaPeloUsuario = false;
+    audioBlobGlobal = mp3Blob;                 // guarda se quiser depois
+
+    statusMsg.textContent = 'Gravação concluída. Escolha uma opção.';
+    audioPlayer.src       = URL.createObjectURL(mp3Blob);
     audioPlayer.style.display = 'block';
-
-    btnDownload.style.display = 'block';   // mostra botão novo
+    btnDownload.style.display = 'block';
     btnUpload.style.display   = 'block';
-  } catch (err) {
-    console.error(err);
-    statusMsg.textContent = 'Erro ao converter para MP3.';
+
+  } else {                                     // —— PARTE AUTOMÁTICA
+    if (accessToken) {
+      await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
+      parteAtual++;
+      statusMsg.textContent =
+        `Parte ${parteAtual - 1} enviada. Continuando…`;
+    }
+    if (gravandoAutomatico) {
+      mediaRecorder.start();                   // nova parte
+    }
   }
-  paradaSolicitadaPeloUsuario = false;
+};
 
-
-      } else {
-        /* ===== parada automática por tamanho ===== */
-        try {
-          const mp3Blob = await convertToMp3WithProcessing(audioBlob);
-          if (accessToken) {
-            await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
-            parteAtual++;
-            statusMsg.textContent = `Parte ${parteAtual - 1} enviada. Continuando...`;
-            if (gravandoAutomatico) {
-              audioChunks = [];
-              tamanhoAcumulado = 0;
-              mediaRecorder.start();            // reinicia nova parte
-            }
-          }
-        } catch (err) {
-          console.error(err);
-          statusMsg.textContent = 'Erro ao converter para MP3.';
-        }
-      }
-    };
     /* -------- fim do onstop -------- */
 
     mediaRecorder.start();                      // inicia 1ª parte
