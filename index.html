@@ -209,6 +209,8 @@ let tokenClient = null;
 let btnGravar, btnPausar, btnParar, audioPlayer, btnUpload, statusMsg, modalGravador, btnCloseGravador;
 let mediaRecorder = null;                 // gravador
 let audioBlobGlobal = null;               // mp3 final p/ download / upload
+
+  
 let modalLerProjeto, btnCloseLerProjeto, inputPdf, pdfFileName, btnUploadPdf, statusMsgPdf, pdfBlobGlobal = null;
 let parteAtual = 1;
 let tamanhoAcumulado = 0;
@@ -226,15 +228,23 @@ let workerFlushDoneResolve = null;   // função resolve da Promise
 
 
 function initMp3Worker(sr){
-  mp3Worker   = new Worker('worker_mp3.js');
-  mp3Worker.postMessage({ cmd:'init', sampleRate: sr });
- mp3Worker.onmessage = e => {
-  if (e.data && e.data.done){
-    if (workerFlushDoneResolve) workerFlushDoneResolve();
-    return;
-  }
-  mp3Pieces.push(new Uint8Array(e.data));
-};
+  mp3Worker = new Worker('worker_mp3.js');
+  mp3Worker.postMessage({ cmd: 'init', sampleRate: sr });
+
+  mp3Worker.onmessage = e => {
+    /* terminou a gravação? */
+    if (e.data && e.data.done){
+      workerReady = false;                 // encoder finalizado
+      if (workerFlushDoneResolve) workerFlushDoneResolve();
+      return;
+    }
+    /* pedaço normal de MP3 */
+    mp3Pieces.push(new Uint8Array(e.data));
+  };
+
+  workerReady = true;                      // pronto para receber blocos
+}          // ←←← FECHA a função!
+
 
 
   
