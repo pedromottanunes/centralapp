@@ -385,11 +385,10 @@ async function subirAudio () {
   // 2.4 – terminou todas as partes
   statusMsg.textContent += '\nEnvio concluído!';
 
-  // 2.5 – dispara **UMA** vez o webhook contendo TODOS os IDs
+// 2.5 – dispara **UMA** vez o webhook contendo TODOS os IDs
   if (idsUploadCorrente.length) {
-    dispararWebhookLista(idsUploadCorrente);
+    await dispararWebhookLista(idsUploadCorrente);   // ← ESPERA terminar
   }
-}
 
 
  
@@ -1262,15 +1261,22 @@ async function dispararWebhook(fileId) {
   }
 }
 
-  /* --- NOVO: envia VÁRIOS ids de uma vez -------------------------- */
+/* --- NOVO: envia VÁRIOS ids de uma vez -------------------------- */
 async function dispararWebhookLista(arrIds) {
-  await fetch(WEBHOOK_URL, {
-    method : 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body   : JSON.stringify(arrIds)   // envia só o array
-  });
-  console.log('Webhook-lista enviado:', arrIds);
+  try {
+    const resp = await fetch(WEBHOOK_URL, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify({ fileIds: arrIds })   // objeto = ok no Make
+    });
+
+    // debug rápido
+    console.log('Webhook-lista status:', resp.status);
+  } catch (e) {
+    console.error('Falha no webhook-lista:', e);
+  }
 }
+
 
  
 </script>
