@@ -184,7 +184,7 @@ let userNameSpan = null; // ADICIONADO
 let profileLogo = null;
 
 // Google Drive params
-const TAMANHO_MAX_PARTE = 10 * 1024 * 1024;
+const TAMANHO_MAX_PARTE = 1 * 1024 * 1024;
 const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
@@ -363,7 +363,7 @@ async function subirAudio() {
   }
 
   statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
-  const PART_SIZE = 10 * 1024 * 1024;               // 10 MB
+  const PART_SIZE = 1 * 1024 * 1024;               // 10 MB
   const mp3Parts  = splitBlob(audioBlobGlobal, PART_SIZE);
 
   if (mp3Parts.length === 1) {
