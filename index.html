@@ -1263,11 +1263,11 @@ async function dispararWebhook(fileId) {
 }
 
   /* --- NOVO: envia VÁRIOS ids de uma vez -------------------------- */
-async function dispararWebhookLista(arrIds) {
+sync function dispararWebhookLista(arrIds) {
   await fetch(WEBHOOK_URL, {
     method : 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body   : JSON.stringify({ fileIds: arrIds })
+    body   : JSON.stringify(arrIds)   // envia só o array
   });
   console.log('Webhook-lista enviado:', arrIds);
 }
