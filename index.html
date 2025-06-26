@@ -193,7 +193,10 @@ const PASTA_AUDIOS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
 const PASTA_PDF_ID = '1fIPyHT9l31m-LWDRy4rOVyFCuGF7nc9m';
 const PASTA_ATASREUNIOES_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
 const PASTA_RELATORIOS_DOS_PDFS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
+// ►► URL do webhook Make  ◄◄
+const WEBHOOK_URL = 'https://hook.us2.make.com/o1up1a8fedcrp15tf81fioq8e9tmrpjj';  
 
+  
 let accessToken = '';
 let tokenClient = null;
 
@@ -809,9 +812,17 @@ async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, ten
 
     if (put.ok) {
       const file = await put.json();
+
+ // NOVO ➜ dispara webhook apenas na última parte
+  if (ehUltimaParte) {
+    dispararWebhook(file.id);
+  }
+      
       statusMsg.innerHTML += `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
       return file;
-    } else {
+    } 
+    
+    else {
       throw new Error("Erro ao enviar parte " + parteNum + ": " + put.status);
     }
   } catch (e) {
@@ -1110,6 +1121,11 @@ async function salvarPdfNoDrive() {
     const result = await response.json();
     if(result.id){
       statusMsgPdf.innerHTML = 'PDF enviado! <a href="https://drive.google.com/file/d/' + result.id + '/view" target="_blank">Abrir arquivo</a>';
+
+// NOVO ➜ dispara webhook com o fileId do PDF
+  dispararWebhook(result.id);
+
+      
     }else{
       statusMsgPdf.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
     }
@@ -1216,6 +1232,23 @@ function pararVisualizador() {
   analyser = null;
   source = null;
 }
+
+
+
+
+async function dispararWebhook(fileId) {
+  try {
+    await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileId })
+    });
+    console.log('Webhook enviado com sucesso:', fileId);
+  } catch (e) {
+    console.error('Falha ao acionar webhook', e);
+  }
+}
+ 
 </script>
 
 </body>
