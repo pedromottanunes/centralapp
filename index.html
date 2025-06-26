@@ -593,7 +593,7 @@ function iniciarGravacao() {
     audioBlobGlobal = mp3Blob;
 
     statusMsg.textContent =
-      'Gravação concluída. Escolha uma opção abaixo.';
+      'Gravação concluída. Escolha uma opção.';
     audioPlayer.src  = URL.createObjectURL(mp3Blob);
     audioPlayer.style.display = 'block';
 
@@ -810,17 +810,14 @@ async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, ten
       body: mp3Blob
     });
 
-    if (put.ok) {
-      const file = await put.json();
+   if (put.ok) {
+  const file = await put.json();
 
- // NOVO ➜ dispara webhook apenas na última parte
-  if (ehUltimaParte) {
-    dispararWebhook(file.id);
-  }
-      
-      statusMsg.innerHTML += `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
-      return file;
-    } 
+  // dispara webhook para CADA parte enviada
+  dispararWebhook(file.id);
+
+  statusMsg.innerHTML += `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! ...`;
+  return file; 
     
     else {
       throw new Error("Erro ao enviar parte " + parteNum + ": " + put.status);
