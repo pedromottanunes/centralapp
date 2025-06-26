@@ -161,14 +161,15 @@
 
 <script>
 
-  
 
 
 // DECLARAÇÃO DE TODAS AS VARIÁVEIS
 let wakeLock = null;
-
 let loteIdAtual = null;
 let paradaSolicitadaPeloUsuario = false;
+
+    // ←  guarda os IDs das partes enviadas pelo botão “Salvar no Google Drive”
+let idsUploadCorrente = [];
 
 // Variáveis de elementos DOM - CORRIGIDO
 let btnPastinhaBrutos = null;
@@ -208,6 +209,7 @@ let parteAtual = 1;
 let tamanhoAcumulado = 0;
 let gravandoAutomatico = false;
 let audioContext = null, analyser = null, source = null, visualizerAnimationId = null;
+
 
   /* ---------- utilidade: token ainda dentro da validade? ---------- */
 function tokenAindaValido() {
@@ -356,30 +358,39 @@ function ensureAccessToken(callback) {
 // ----------------------------------------------------
 // Faz o upload do áudio MP3 armazenado em audioBlobGlobal
 // ----------------------------------------------------
-async function subirAudio() {
+// --------------- BOTÃO “Salvar no Google Drive” ---------------
+async function subirAudio () {
+
+  // 2.1 – nada para enviar?
   if (!audioBlobGlobal) {
     alert('Nenhum áudio convertido para enviar!');
     return;
   }
 
-  statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive...';
-  const PART_SIZE = 1 * 1024 * 1024;               // 10 MB
-  const mp3Parts  = splitBlob(audioBlobGlobal, PART_SIZE);
+  // 2.2 – zera o array desta gravação
+  idsUploadCorrente = [];
 
-  if (mp3Parts.length === 1) {
-    await salvarNoDriveResumableParte(parteAtual, mp3Parts[0], true);
-  } else {
-    for (let i = 0; i < mp3Parts.length; i++) {
-      const ehUltima = (i === mp3Parts.length - 1);
-      statusMsg.textContent =
-        `Enviando parte ${i + 1} de ${mp3Parts.length}...`;
-      await salvarNoDriveResumableParte(parteAtual + i,
-                                        mp3Parts[i],
-                                        ehUltima);
-    }
+  // 2.3 – corta o arquivo em partes e envia
+  statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive…';
+
+  const PART_SIZE = 1 * 1024 * 1024;                 // 10 MB (mude se quiser)
+  const partes = splitBlob(audioBlobGlobal, PART_SIZE);
+
+  for (let i = 0; i < partes.length; i++) {
+    const ehUltima = (i === partes.length - 1);
+    statusMsg.textContent = `Enviando parte ${i + 1} de ${partes.length}…`;
+    await salvarNoDriveResumableParte(parteAtual + i, partes[i], ehUltima);
   }
+
+  // 2.4 – terminou todas as partes
   statusMsg.textContent += '\nEnvio concluído!';
+
+  // 2.5 – dispara **UMA** vez o webhook contendo TODOS os IDs
+  if (idsUploadCorrente.length) {
+    dispararWebhookLista(idsUploadCorrente);
+  }
 }
+
 
  
   
@@ -671,6 +682,8 @@ function resetarGravador() {
   btnDownload.style.display = 'none';
   statusMsg.textContent     = '';
   audioBlobGlobal = null;
+  parteAtual      = 1;   // NOVO
+ 
   loteIdAtual     = null;
 }
 /* =============================================================== */
@@ -810,19 +823,20 @@ async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, ten
       body: mp3Blob
     });
 
-  if (put.ok) {
+if (put.ok) {
   const file = await put.json();
 
-  // dispara webhook para CADA parte enviada
-  dispararWebhook(file.id);
+  idsUploadCorrente.push(file.id);
 
   statusMsg.innerHTML +=
-    `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
-  return file;                 // ← fecha o bloco do if aqui
+    `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! ` +
+    `<a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
+
+  return file;
 } else {
-  // se put não foi OK, lança erro
   throw new Error("Erro ao enviar parte " + parteNum + ": " + put.status);
 }
+
 
   } catch (e) {
     if (tentativas < 3) {
@@ -1247,6 +1261,17 @@ async function dispararWebhook(fileId) {
     console.error('Falha ao acionar webhook', e);
   }
 }
+
+  /* --- NOVO: envia VÁRIOS ids de uma vez -------------------------- */
+async function dispararWebhookLista(arrIds) {
+  await fetch(WEBHOOK_URL, {
+    method : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body   : JSON.stringify({ fileIds: arrIds })
+  });
+  console.log('Webhook-lista enviado:', arrIds);
+}
+
  
 </script>
 
