@@ -1263,7 +1263,7 @@ async function dispararWebhook(fileId) {
 }
 
   /* --- NOVO: envia VÁRIOS ids de uma vez -------------------------- */
-sync function dispararWebhookLista(arrIds) {
+async function dispararWebhookLista(arrIds) {
   await fetch(WEBHOOK_URL, {
     method : 'POST',
     headers: { 'Content-Type': 'application/json' },
