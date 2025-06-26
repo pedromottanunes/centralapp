@@ -810,18 +810,20 @@ async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, ten
       body: mp3Blob
     });
 
-   if (put.ok) {
+  if (put.ok) {
   const file = await put.json();
 
   // dispara webhook para CADA parte enviada
   dispararWebhook(file.id);
 
-  statusMsg.innerHTML += `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! ...`;
-  return file; 
-    
-    else {
-      throw new Error("Erro ao enviar parte " + parteNum + ": " + put.status);
-    }
+  statusMsg.innerHTML +=
+    `<br>Parte ${ehUltimaParte ? 'final' : parteNum} enviada! <a href="https://drive.google.com/file/d/${file.id}/view" target="_blank">Abrir</a>`;
+  return file;                 // ← fecha o bloco do if aqui
+} else {
+  // se put não foi OK, lança erro
+  throw new Error("Erro ao enviar parte " + parteNum + ": " + put.status);
+}
+
   } catch (e) {
     if (tentativas < 3) {
       statusMsg.textContent = `Tentando novamente (tentativa ${tentativas + 1})...`;
