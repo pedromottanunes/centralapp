@@ -185,7 +185,7 @@ let userNameSpan = null; // ADICIONADO
 let profileLogo = null;
 
 // Google Drive params
-const TAMANHO_MAX_PARTE = 1 * 1024 * 1024;
+const TAMANHO_MAX_PARTE = 0.2 * 1024 * 1024;
 const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
@@ -373,7 +373,7 @@ async function subirAudio () {
   // 2.3 – corta o arquivo em partes e envia
   statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive…';
 
-  const PART_SIZE = 1 * 1024 * 1024;                 // 10 MB (mude se quiser)
+  const PART_SIZE = 0.2 * 1024 * 1024;                 // 10 MB (mude se quiser)
   const partes = splitBlob(audioBlobGlobal, PART_SIZE);
 
   for (let i = 0; i < partes.length; i++) {
