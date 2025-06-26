@@ -207,7 +207,8 @@ let tokenClient = null;
 
 // DOM elements refs
 let btnGravar, btnPausar, btnParar, audioPlayer, btnUpload, statusMsg, modalGravador, btnCloseGravador;
-let mediaRecorder,  = [], audioBlob, audioBlobGlobal = null;
+let mediaRecorder = null;                 // gravador
+let audioBlobGlobal = null;               // mp3 final p/ download / upload
 let modalLerProjeto, btnCloseLerProjeto, inputPdf, pdfFileName, btnUploadPdf, statusMsgPdf, pdfBlobGlobal = null;
 let parteAtual = 1;
 let tamanhoAcumulado = 0;
@@ -220,21 +221,21 @@ let mp3Worker   = null;
 let mp3Pieces   = [];                // Uint8Arrays vindas do worker
 let workerReady = false;
 
+  let workerFlushDone = null;          // Promise
+let workerFlushDoneResolve = null;   // função resolve da Promise
+
+
 function initMp3Worker(sr){
   mp3Worker   = new Worker('worker_mp3.js');
   mp3Worker.postMessage({ cmd:'init', sampleRate: sr });
-  mp3Worker.onmessage = e => {
-    // terminou?
-    if (e.data && e.data.done){
-       audioBlobGlobal = new Blob(mp3Pieces, { type:'audio/mp3' });
-       workerReady = false;          // zera para próxima gravação
-       return;
-    }
-    // pedaço normal
-    mp3Pieces.push(new Uint8Array(e.data));
-  };
-  workerReady = true;
-}
+ mp3Worker.onmessage = e => {
+  if (e.data && e.data.done){
+    if (workerFlushDoneResolve) workerFlushDoneResolve();
+    return;
+  }
+  mp3Pieces.push(new Uint8Array(e.data));
+};
+
 
   
 
@@ -595,7 +596,7 @@ tmpCtx.close();                     // libera imediatamente o recurso
     
 
     iniciarVisualizador(stream);
-             = [];
+             
     tamanhoAcumulado    = 0;
     gravandoAutomatico  = true;
     parteAtual          = 1;
@@ -648,8 +649,8 @@ mediaRecorder.onstop = async () => {
   await workerFlushDone;                 // ← espera o worker
 
   /* 2️⃣  Blob final desta parte  */
-  const mp3Blob = new Blob(mp3Parts, { type: 'audio/mp3' });
-  mp3Parts.length = 0;                   // zera p/ próxima parte
+  const mp3Blob = new Blob(mp3Pieces, { type: 'audio/mp3' });
+  mp3Pieces.length = 0;                   // zera p/ próxima parte
 
   /* 3️⃣  Decide o que fazer           */
   if (paradaSolicitadaPeloUsuario) {           // —— PARADA MANUAL
