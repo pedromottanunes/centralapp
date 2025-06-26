@@ -1,29 +1,44 @@
-/* worker_mp3.js – encoder em streaming -------------------------- */
+/* worker_mp3.js – encoder em streaming CORRIGIDO */
 self.importScripts('https://cdn.jsdelivr.net/npm/lamejs@1.2.0/lame.min.js');
 
 let encoder, sampleRate;
 
 self.onmessage = e => {
-  const { cmd, buf } = e.data;
+  const { cmd } = e.data;
 
-  if (cmd === 'init') {                         /* 1️⃣ iniciar            */
-    sampleRate = e.data.sampleRate;             // Hz (ex.: 48 000)
-    encoder    = new lamejs.Mp3Encoder(1, sampleRate, 96); // mono - 96 kbps
+  if (cmd === 'init') {
+    sampleRate = e.data.sampleRate;
+    encoder = new lamejs.Mp3Encoder(1, sampleRate, 128); // Aumentei para 128 kbps
     return;
   }
 
-  if (cmd === 'flush') {                        /* 3️⃣ finalizar          */
+  if (cmd === 'flush') {
     const end = encoder.flush();
-    if (end.length) self.postMessage(end, [end.buffer]);
+    if (end.length) {
+      // CORREÇÃO: não transferir o buffer, apenas copiar os dados
+      self.postMessage(new Uint8Array(end));
+    }
     self.postMessage({ done: true });
     return;
   }
 
-  /* 2️⃣ cmd === 'encode'  –  buf = Float32Array (mono PCM)         */
-  const i16 = new Int16Array(buf.length);
-  for (let i = 0; i < buf.length; ++i)
-    i16[i] = Math.max(-32768, Math.min(32767, buf[i] * 32767));
+  if (cmd === 'encode') {
+    const buf = e.data.buf;
+    
+    // CORREÇÃO: verificar se o buffer é válido
+    if (!buf || buf.length === 0) return;
+    
+    const i16 = new Int16Array(buf.length);
+    for (let i = 0; i < buf.length; i++) {
+      // CORREÇÃO: melhor clamping dos valores
+      const sample = Math.max(-1, Math.min(1, buf[i]));
+      i16[i] = Math.round(sample * 32767);
+    }
 
-  const mp3buf = encoder.encodeBuffer(i16);
-  if (mp3buf.length) self.postMessage(mp3buf, [mp3buf.buffer]);
+    const mp3buf = encoder.encodeBuffer(i16);
+    if (mp3buf.length > 0) {
+      // CORREÇÃO: não transferir o buffer
+      self.postMessage(new Uint8Array(mp3buf));
+    }
+  }
 };
