@@ -227,23 +227,35 @@ let workerReady = false;
 let workerFlushDoneResolve = null;   // função resolve da Promise
 
 
-function initMp3Worker(sr){
+function initMp3Worker(sr) {
+  if (mp3Worker) {
+    mp3Worker.terminate(); // CORREÇÃO: terminar worker anterior se existir
+  }
+  
   mp3Worker = new Worker('worker_mp3.js');
   mp3Worker.postMessage({ cmd: 'init', sampleRate: sr });
 
   mp3Worker.onmessage = e => {
-    /* terminou a gravação? */
-    if (e.data && e.data.done){
-      workerReady = false;                 // encoder finalizado
+    if (e.data && e.data.done) {
+      workerReady = false;
       if (workerFlushDoneResolve) workerFlushDoneResolve();
       return;
     }
-    /* pedaço normal de MP3 */
-    mp3Pieces.push(new Uint8Array(e.data));
+    
+    // CORREÇÃO: verificar se recebemos dados válidos
+    if (e.data && e.data.length > 0) {
+      mp3Pieces.push(new Uint8Array(e.data));
+    }
   };
 
-  workerReady = true;                      // pronto para receber blocos
-}          // ←←← FECHA a função!
+  // CORREÇÃO: adicionar handler de erro
+  mp3Worker.onerror = error => {
+    console.error('Erro no worker MP3:', error);
+    statusMsg.textContent = 'Erro no processamento de áudio';
+  };
+
+  workerReady = true;
+}
 
 
 
@@ -503,42 +515,40 @@ if (!btnGravar || !btnPausar || !btnParar) {
   btnUploadPdf = document.getElementById('btnUploadPdf');
   statusMsgPdf = document.getElementById('statusMsgPdf');
 
-  // EVENT LISTENERS
-  logoArea.onclick = () => ensureAccessToken(()=>{});
+ // EVENT LISTENERS
+document.getElementById('logoArea').onclick = () => ensureAccessToken(()=>{});
 
+document.getElementById('cardGravar').onclick = abrirGravador;
+btnCloseGravador.onclick = fecharGravador;
+btnGravar.onclick = iniciarGravacao;
+btnPausar.onclick = pausarGravacao;
+btnParar.onclick = pararGravacao;
 
-  document.getElementById('cardGravar').onclick = abrirGravador;
-  btnCloseGravador.onclick = fecharGravador;
-  btnGravar.onclick = iniciarGravacao;
-  btnPausar.onclick = pausarGravacao;
-  btnParar.onclick = pararGravacao;
-  
-btnUpload.onclick  = () => ensureAccessToken(subirAudio);   
-  
- btnDownload.onclick = () => {
-   if (!audioBlobGlobal) return;        // nada a baixar ainda
-   salvarAudioNoDispositivo(
-     audioBlobGlobal,
-     `audio_${new Date().toISOString().replace(/[:.]/g,'-')}.mp3`
-   );
- };
+btnUpload.onclick = () => ensureAccessToken(subirAudio);   
 
-btnAtas.onclick           = () => ensureAccessToken(abrirModalAtas);
-btnCloseAtas.onclick      = fecharModalAtas;
+btnDownload.onclick = () => {
+  if (!audioBlobGlobal) return;
+  salvarAudioNoDispositivo(
+    audioBlobGlobal,
+    `audio_${new Date().toISOString().replace(/[:.]/g,'-')}.mp3`
+  );
+};
 
-btnRelatorios.onclick     = () => ensureAccessToken(abrirModalRelatorios);
-btnCloseRelatorios.onclick= fecharModalRelatorios;
+btnAtas.onclick = () => ensureAccessToken(abrirModalAtas);
+btnCloseAtas.onclick = fecharModalAtas;
+
+btnRelatorios.onclick = () => ensureAccessToken(abrirModalRelatorios);
+btnCloseRelatorios.onclick = fecharModalRelatorios;
 
 btnClosePastaReunioes.onclick = fecharPastasReunioes;
-btnPastinhaBrutos.onclick     = () => ensureAccessToken(abrirPastasReunioes);
-btnCloseBrutos.onclick        = fecharModalBrutos;
+btnPastinhaBrutos.onclick = () => ensureAccessToken(abrirPastasReunioes);
+btnCloseBrutos.onclick = fecharModalBrutos;
 
 document.getElementById('cardEnviarPdf').onclick = abrirLerProjeto;
 btnCloseLerProjeto.onclick = fecharLerProjeto;
-btnUploadPdf.onclick       = salvarPdfNoDrive;
-btnPastinhaPdfs.onclick    = () => ensureAccessToken(abrirModalPdfs);
-btnClosePdfs.onclick       = fecharModalPdfs;
-
+btnUploadPdf.onclick = () => ensureAccessToken(salvarPdfNoDrive);  // CORRIGIDO
+btnPastinhaPdfs.onclick = () => ensureAccessToken(abrirModalPdfs);
+btnClosePdfs.onclick = fecharModalPdfs;
 
   inputPdf.onchange = function() {
     const file = inputPdf.files[0];
@@ -597,104 +607,156 @@ function iniciarGravacao() {
     return;
   }
 
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    mediaRecorder = new MediaRecorder(stream);
+  navigator.mediaDevices.getUserMedia({ 
+    audio: {
+      sampleRate: 44100,        // CORREÇÃO: taxa de amostragem fixa
+      channelCount: 1,          // CORREÇÃO: forçar mono
+      echoCancellation: true,
+      noiseSuppression: true
+    }
+  }).then(stream => {
     
- const tmpCtx = new (window.AudioContext || window.webkitAudioContext)();
-initMp3Worker(tmpCtx.sampleRate);   // diz ao worker qual SR usar
-tmpCtx.close();                     // libera imediatamente o recurso
+    // CORREÇÃO: usar codec específico se disponível
+    const options = {};
+    if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+      options.mimeType = 'audio/webm;codecs=opus';
+    } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+      options.mimeType = 'audio/webm';
+    }
     
-
+    mediaRecorder = new MediaRecorder(stream, options);
+    
+    // CORREÇÃO: inicializar worker com taxa de amostragem fixa
+    initMp3Worker(44100);
+    
     iniciarVisualizador(stream);
-             
-    tamanhoAcumulado    = 0;
-    gravandoAutomatico  = true;
-    parteAtual          = 1;
+    
+    tamanhoAcumulado = 0;
+    gravandoAutomatico = true;
+    parteAtual = 1;
 
+    // CORREÇÃO: coletar dados em intervalos menores
+    mediaRecorder.ondataavailable = async e => {
+      if (!e.data.size) return;
 
-    /* ---------- HANDLERS ---------- */
-   mediaRecorder.ondataavailable = async e => {
-  if (!e.data.size) return;               // nada a fazer
+      try {
+        const arrayBuf = await e.data.arrayBuffer();
+        const ctx = new (window.AudioContext || window.webkitAudioContext)({
+          sampleRate: 44100  // CORREÇÃO: taxa fixa
+        });
+        
+        const audioBuf = await ctx.decodeAudioData(arrayBuf);
+        
+        // CORREÇÃO: garantir mono e taxa correta
+        let pcm;
+        if (audioBuf.numberOfChannels > 1) {
+          // Converter para mono
+          const left = audioBuf.getChannelData(0);
+          const right = audioBuf.getChannelData(1);
+          pcm = new Float32Array(left.length);
+          for (let i = 0; i < left.length; i++) {
+            pcm[i] = (left[i] + right[i]) * 0.5;
+          }
+        } else {
+          pcm = new Float32Array(audioBuf.getChannelData(0));
+        }
+        
+        ctx.close();
 
-  /* 1️⃣ — WebM  ➜  PCM ------------------------------------------------ */
-  const arrayBuf = await e.data.arrayBuffer();
+        // CORREÇÃO: enviar cópia dos dados, não transferir
+        if (workerReady && pcm.length > 0) {
+          mp3Worker.postMessage({ 
+            cmd: 'encode', 
+            buf: pcm 
+          });
+        }
 
-  const ctx      = new (window.AudioContext || window.webkitAudioContext)();
-  const audioBuf = await ctx.decodeAudioData(arrayBuf);   // decodifica Opus/WebM
-  const pcm      = audioBuf.getChannelData(0);            // mono (L) – já Float32
-  ctx.close();                                            // libera o contexto
-
-  /* 2️⃣ — envia PCM para o worker  (zero-copy) ------------------------ */
-  if (workerReady)
-    mp3Worker.postMessage({ cmd: 'encode', buf: pcm }, [pcm.buffer]);
-
-  /* 3️⃣ — CONTROLE de “parte de 10 MB” permanece igual ---------------
-        Se quiser continuar parando a gravação a cada 10 MB, deixe:
-  */
-  tamanhoAcumulado += e.data.size;
-  if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
-    gravandoAutomatico = true;           // seu flag original
-    mediaRecorder.stop();                // dispara onstop (passo 5)
-  }
-};
-
-    mediaRecorder.onstart  = () => {
-      btnGravar.disabled = true;
-      btnPausar.disabled = false;
-      btnParar.disabled  = false;
-      statusMsg.textContent = 'Gravando... (Pode iniciar a reunião)';
-      audioPlayer.style.display = 'none';
-      btnUpload.style.display  = 'none';
+        tamanhoAcumulado += e.data.size;
+        if (tamanhoAcumulado >= TAMANHO_MAX_PARTE) {
+          gravandoAutomatico = true;
+          mediaRecorder.stop();
+        }
+        
+      } catch (error) {
+        console.error('Erro no processamento de áudio:', error);
+        statusMsg.textContent = 'Erro no processamento de áudio: ' + error.message;
+      }
     };
 
-    mediaRecorder.onpause  = () => statusMsg.textContent = 'Gravação pausada.';
+    mediaRecorder.onstart = () => {
+      btnGravar.disabled = true;
+      btnPausar.disabled = false;
+      btnParar.disabled = false;
+      statusMsg.textContent = 'Gravando... (Pode iniciar a reunião)';
+      audioPlayer.style.display = 'none';
+      btnUpload.style.display = 'none';
+    };
+
+    mediaRecorder.onpause = () => statusMsg.textContent = 'Gravação pausada.';
     mediaRecorder.onresume = () => statusMsg.textContent = `Gravando... (Parte ${parteAtual})`;
 
-/* -------- onstop  (streaming MP3) -------- */
-mediaRecorder.onstop = async () => {
+    mediaRecorder.onstop = async () => {
+      try {
+        workerFlushDone = new Promise(r => workerFlushDoneResolve = r);
+        mp3Worker.postMessage({ cmd: 'flush' });
+        await workerFlushDone;
 
-  /* 1️⃣  encerra o encoder  */
-  workerFlushDone = new Promise(r => workerFlushDoneResolve = r);
-  mp3Worker.postMessage({ cmd: 'flush' });
-  await workerFlushDone;                 // ← espera o worker
+        // CORREÇÃO: verificar se temos dados MP3
+        if (mp3Pieces.length === 0) {
+          statusMsg.textContent = 'Erro: Nenhum dado de áudio foi processado';
+          return;
+        }
 
-  /* 2️⃣  Blob final desta parte  */
-  const mp3Blob = new Blob(mp3Pieces, { type: 'audio/mp3' });
-  mp3Pieces.length = 0;                   // zera p/ próxima parte
+        // CORREÇÃO: construir blob corretamente
+        const mp3Blob = new Blob(mp3Pieces, { type: 'audio/mpeg' });
+        
+        // CORREÇÃO: verificar tamanho do blob
+        if (mp3Blob.size < 1000) { // menos de 1KB é suspeito
+          statusMsg.textContent = `Aviso: Arquivo muito pequeno (${mp3Blob.size} bytes). Pode estar corrompido.`;
+        }
+        
+        mp3Pieces.length = 0;
 
-  /* 3️⃣  Decide o que fazer           */
-  if (paradaSolicitadaPeloUsuario) {           // —— PARADA MANUAL
-    paradaSolicitadaPeloUsuario = false;
-    audioBlobGlobal = mp3Blob;                 // guarda se quiser depois
+        if (paradaSolicitadaPeloUsuario) {
+          paradaSolicitadaPeloUsuario = false;
+          audioBlobGlobal = mp3Blob;
 
-    statusMsg.textContent = 'Gravação concluída. Escolha uma opção.';
-    audioPlayer.src       = URL.createObjectURL(mp3Blob);
-    audioPlayer.style.display = 'block';
-    btnDownload.style.display = 'block';
-    btnUpload.style.display   = 'block';
+          statusMsg.textContent = `Gravação concluída. Arquivo gerado: ${Math.round(mp3Blob.size/1024)}KB`;
+          
+          // CORREÇÃO: criar URL do blob de forma mais robusta
+          const audioURL = URL.createObjectURL(mp3Blob);
+          audioPlayer.src = audioURL;
+          audioPlayer.style.display = 'block';
+          btnDownload.style.display = 'block';
+          btnUpload.style.display = 'block';
+          
+          // CORREÇÃO: adicionar evento para limpar URL quando não usado
+          audioPlayer.onended = () => URL.revokeObjectURL(audioURL);
+          
+        } else {
+          if (accessToken) {
+            await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
+            parteAtual++;
+            statusMsg.textContent = `Parte ${parteAtual - 1} enviada. Continuando…`;
+          }
+          if (gravandoAutomatico) {
+            mediaRecorder.start(1000); // CORREÇÃO: gravar em chunks de 1s
+          }
+        }
+      } catch (error) {
+        console.error('Erro no onstop:', error);
+        statusMsg.textContent = 'Erro ao finalizar gravação: ' + error.message;
+      }
+    };
 
-  } else {                                     // —— PARTE AUTOMÁTICA
-    if (accessToken) {
-      await salvarNoDriveResumableParte(parteAtual, mp3Blob, false);
-      parteAtual++;
-      statusMsg.textContent =
-        `Parte ${parteAtual - 1} enviada. Continuando…`;
-    }
-    if (gravandoAutomatico) {
-      mediaRecorder.start();                   // nova parte
-    }
-  }
-};
-
-    /* -------- fim do onstop -------- */
-
-    mediaRecorder.start();                      // inicia 1ª parte
-  })
-  .catch(err => {
+    // CORREÇÃO: iniciar com timeslice menor
+    mediaRecorder.start(1000); // 1 segundo por chunk
+    
+  }).catch(err => {
     console.error('Erro ao acessar microfone:', err);
     statusMsg.textContent = 'Erro: Não foi possível acessar o microfone.';
   });
-} /* ========  até AQUI  ======== */
+}
 
 /* === Estes três handlers agora ficam fora de iniciarGravacao() === */
 function pausarGravacao() {
