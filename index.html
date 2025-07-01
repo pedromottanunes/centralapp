@@ -184,16 +184,21 @@ let modalPastaReunioes = null, btnClosePastaReunioes = null; // ADICIONADO
 let userNameSpan = null; // ADICIONADO
 let profileLogo = null;
 
-// Google Drive params
-const TAMANHO_MAX_PARTE = 0.2 * 1024 * 1024;
-const CLIENT_ID = '206253858878-rdmme43csja9vuicd6uh4so1cgfg3v0u.apps.googleusercontent.com';
-const API_KEY = 'AIzaSyDSQt5SOwfXOKuMasPUShacyHmsjzObDnA';
-const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-const PASTA_AUDIOS_ID = '13LyjSc_52aYD6Tr1JsDd266fDLNbUj4A';
-const PASTA_PDF_ID = '1fIPyHT9l31m-LWDRy4rOVyFCuGF7nc9m';
-const PASTA_ATASREUNIOES_ID = '1DyW_xNYZAppz6tHabxOJBGkbfC67weoZ';
-const PASTA_RELATORIOS_DOS_PDFS_ID = '1hxKM8pr6gjw66-Fm0zGfDuYvZ_BkYjFO';
+/* CONFIGS – TROQUE para os seus: */
+const TAMANHO_MAX_PARTE = 0.2 * 1024 * 1024;
+const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
+const API_KEY = 'AIzaSyDyKnas6na8NR_mVwvfefA7nOjTd6Pj1B4';
+const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+
+const PASTA_ATAS_ID = '1ll1gBwCisRkDv1yv-mYQONa2DckYL4hG';      // ID da pasta de atasrelatórios de reuniões
+const PASTA_RELATORIOS_ID = '1ZlVzuLDfXxdfJ4CfQNYd2z3qrwn5k4yh'; // ID da pasta de relatórios de projetos
+
+// Adicione as IDs das pastas de arquivos automatizados:
+const PASTA_ATAS_AUTOMATIZADAS_ID = '1IzOLHw58P3Wun_H3edDapBBKRT69AC36';
+const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1pw9nA9QpKBMzLEPmQwR_Q73isSpoJAbS';
+
+ 
 // ►► URL do webhook Make  ◄◄
 const WEBHOOK_URL = 'https://hook.us2.make.com/2geldi4drfg3bl177lz5awxwf2onnfkr';  
 
