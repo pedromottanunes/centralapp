@@ -165,7 +165,7 @@
 
   // Variável para controlar o timer de limite de gravação
 let gravacaoTimerId = null;
-const LIMITE_GRAVACAO_MS = 2 * 60 * 1000; // 40 minutos em milissegundos
+const LIMITE_GRAVACAO_MS = 1 * 60 * 1000; // 40 minutos em milissegundos
 
 
 // DECLARAÇÃO DE TODAS AS VARIÁVEIS
@@ -698,7 +698,7 @@ function pausarGravacao() {
   if (mediaRecorder.state === 'recording') {
     mediaRecorder.pause();
     btnPausar.textContent = "▶️ Retomar";
-    statusMsg.textContent = 'Gravação pausada.';
+    statusMsg.textContent = 'Encerrou o limite de gravação';
   } else if (mediaRecorder.state === 'paused') {
     mediaRecorder.resume();
     btnPausar.textContent = "⏸️ Pausar";
