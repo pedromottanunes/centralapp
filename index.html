@@ -196,7 +196,9 @@ let profileLogo = null;
 const TAMANHO_MAX_PARTE = 0.3 * 1024 * 1024;
 const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDyKnas6na8NR_mVwvfefA7nOjTd6Pj1B4';
-const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+// ➜ permite criar e atualizar arquivos no Drive do usuário
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+
 
 
 const PASTA_ATAS_ID = '1ll1gBwCisRkDv1yv-mYQONa2DckYL4hG';      // ID da pasta de atasrelatórios de reuniões
@@ -206,8 +208,7 @@ const PASTA_RELATORIOS_ID = '1ZlVzuLDfXxdfJ4CfQNYd2z3qrwn5k4yh'; // ID da pasta 
 const PASTA_ATAS_AUTOMATIZADAS_ID = '1IzOLHw58P3Wun_H3edDapBBKRT69AC36';
 const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1pw9nA9QpKBMzLEPmQwR_Q73isSpoJAbS';
 
-// Se quiser que a pasta de áudios seja a mesma da pasta de atas:
-const PASTA_AUDIOS_ID = PASTA_ATAS_ID;
+
 
   
 // ►► URL do webhook Make  ◄◄
@@ -873,7 +874,7 @@ async function salvarNoDriveResumableParte(parteNum, mp3Blob, ehUltimaParte, ten
   const metadata = {
     name: nome,
     mimeType: mp3Blob.type,
-    parents: [PASTA_AUDIOS_ID]
+    parents: [PASTA_ATAS_ID]
   };
 
   try {
@@ -968,7 +969,7 @@ async function listarArquivosBrutos() {
   }
   document.getElementById('statusMsgBrutos').textContent = 'Carregando arquivos...';
   try {
-    const pastaId = PASTA_AUDIOS_ID;
+    const pastaId = PASTA_ATAS_ID;
     const url = `https://www.googleapis.com/drive/v3/files?q='${pastaId}' in parents and mimeType contains 'audio/'&fields=files(id,name,mimeType,webViewLink,createdTime)&orderBy=createdTime desc&supportsAllDrives=true&includeItemsFromAllDrives=true`;
     const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + accessToken } });
     const data = await resp.json();
@@ -1125,7 +1126,7 @@ async function listarArquivosReunioes() {
 
   try {
     const [arquivosUsuario, arquivosAutomatizados] = await Promise.all([
-      buscarArquivos(PASTA_AUDIOS_ID),
+      buscarArquivos(PASTA_ATAS_ID),
       buscarArquivos(PASTA_ATASREUNIOES_ID)
     ]);
 
@@ -1262,10 +1263,9 @@ async function getUserInfoGoogle() {
 function googleSignOut() {
   accessToken = '';
   localStorage.removeItem('google_access_token');
-  if (profileLogo) {
-    profileLogo.src = "https://drive.google.com/thumbnail?id=1xG9c2LJaXOM6O6vLhU-8zt_rTl272tbg";
-    profileLogo.alt = "Logo";
-  }
+  localStorage.removeItem('google_token_exp');
+  // opcional: recarregar a página ou reabrir o modal de login
+}
   if (userNameSpan) {
     userNameSpan.textContent = "";
   }
