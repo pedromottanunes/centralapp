@@ -165,7 +165,7 @@
 
   // Variável para controlar o timer de limite de gravação
 let gravacaoTimerId = null;
-LIMITE_GRAVACAO_MS = 1 * 60 * 1000; // 40 minutos em milissegundos
+LIMITE_GRAVACAO_MS = 40 * 60 * 1000; // 40 minutos em milissegundos
 
 
 // DECLARAÇÃO DE TODAS AS VARIÁVEIS
@@ -193,7 +193,7 @@ let profileLogo = null;
 
 
 /* CONFIGS – TROQUE para os seus: */
-const TAMANHO_MAX_PARTE = 0.3 * 1024 * 1024;
+const TAMANHO_MAX_PARTE = 10 * 1024 * 1024;
 const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDyKnas6na8NR_mVwvfefA7nOjTd6Pj1B4';
 // ➜ permite criar e atualizar arquivos no Drive do usuário
