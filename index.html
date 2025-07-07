@@ -161,6 +161,9 @@
 
 <script>
 
+  // Variável para controlar o timer de limite de gravação
+let gravacaoTimerId = null;
+const LIMITE_GRAVACAO_MS = 40 * 60 * 1000; // 40 minutos em milissegundos
 
 
 // DECLARAÇÃO DE TODAS AS VARIÁVEIS
@@ -572,6 +575,25 @@ function iniciarGravacao() {
     gravandoAutomatico  = true;
     parteAtual          = 1;
 
+    /* ========== INÍCIO ADIÇÃO TIMER LIMITE ========== */
+    // Limpa timer antigo (caso exista)
+    if (gravacaoTimerId) {
+      clearTimeout(gravacaoTimerId);
+      gravacaoTimerId = null;
+    }
+    // Define o timer de 40 minutos
+    gravacaoTimerId = setTimeout(() => {
+      if (mediaRecorder && mediaRecorder.state === 'recording') {
+        paradaSolicitadaPeloUsuario = true;
+        gravandoAutomatico = false;
+        mediaRecorder.stop();
+        statusMsg.textContent = "Tempo máximo de gravação atingido (40 minutos). Por favor, salve o arquivo antes de continuar.";
+        liberarWakeLock();
+        // Opcional: Você pode forçar o scroll da modal para mostrar a mensagem, se desejar
+      }
+    }, LIMITE_GRAVACAO_MS);
+    /* ========== FIM ADIÇÃO TIMER LIMITE ========== */
+
     /* ---------- HANDLERS ---------- */
     mediaRecorder.ondataavailable = e => {
       if (!e.data.size) return;
@@ -591,6 +613,8 @@ function iniciarGravacao() {
       audioPlayer.style.display = 'none';
       btnUpload.style.display  = 'none';
     };
+    // ... resto igual
+
 
     mediaRecorder.onpause  = () => statusMsg.textContent = 'Gravação pausada.';
     mediaRecorder.onresume = () => statusMsg.textContent = `Gravando... (Parte ${parteAtual})`;
@@ -667,6 +691,11 @@ function pausarGravacao() {
 
 function pararGravacao() {
   liberarWakeLock();
+  // Limpa o timer se a gravação for parada manualmente
+  if (gravacaoTimerId) {
+    clearTimeout(gravacaoTimerId);
+    gravacaoTimerId = null;
+  }
   if (mediaRecorder && mediaRecorder.state !== 'inactive') {
     paradaSolicitadaPeloUsuario = true;
     gravandoAutomatico = false;
@@ -674,6 +703,7 @@ function pararGravacao() {
     statusMsg.textContent = 'Aguarde: preparando o arquivo de áudio...';
   }
 }
+
 
 function resetarGravador() {
   btnGravar.disabled = false;
@@ -689,7 +719,13 @@ function resetarGravador() {
   parteAtual      = 1;   // NOVO
  
   loteIdAtual     = null;
+  // Limpa o timer ao resetar tudo
+  if (gravacaoTimerId) {
+    clearTimeout(gravacaoTimerId);
+    gravacaoTimerId = null;
+  }
 }
+
 /* =============================================================== */
 
 // FUNÇÕES AUXILIARES
