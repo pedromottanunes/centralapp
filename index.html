@@ -193,10 +193,11 @@ let profileLogo = null;
 
 
 /* CONFIGS – TROQUE para os seus: */
-const TAMANHO_MAX_PARTE = 0.2 * 1024 * 1024;
+const TAMANHO_MAX_PARTE = 0.3 * 1024 * 1024;
 const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDyKnas6na8NR_mVwvfefA7nOjTd6Pj1B4';
 const SCOPES = 'https://www.googleapis.com/auth/drive.readonly';
+
 
 const PASTA_ATAS_ID = '1ll1gBwCisRkDv1yv-mYQONa2DckYL4hG';      // ID da pasta de atasrelatórios de reuniões
 const PASTA_RELATORIOS_ID = '1ZlVzuLDfXxdfJ4CfQNYd2z3qrwn5k4yh'; // ID da pasta de relatórios de projetos
@@ -205,7 +206,10 @@ const PASTA_RELATORIOS_ID = '1ZlVzuLDfXxdfJ4CfQNYd2z3qrwn5k4yh'; // ID da pasta 
 const PASTA_ATAS_AUTOMATIZADAS_ID = '1IzOLHw58P3Wun_H3edDapBBKRT69AC36';
 const PASTA_RELATORIOS_AUTOMATIZADOS_ID = '1pw9nA9QpKBMzLEPmQwR_Q73isSpoJAbS';
 
- 
+// Se quiser que a pasta de áudios seja a mesma da pasta de atas:
+const PASTA_AUDIOS_ID = PASTA_ATAS_ID;
+
+  
 // ►► URL do webhook Make  ◄◄
 const WEBHOOK_URL = 'https://hook.us2.make.com/2geldi4drfg3bl177lz5awxwf2onnfkr';  
 
