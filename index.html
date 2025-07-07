@@ -408,10 +408,8 @@ async function subirAudio () {
 
 window.onload = async function() {
 
-  
-  // Aguarda um pouco para garantir que as bibliotecas carregaram
+    // Aguarda um pouco para garantir que as bibliotecas carregaram
 await new Promise(resolve => setTimeout(resolve, 500)); // delay de 0.5s  
-
 
   // Login automático
 const savedToken = localStorage.getItem('google_access_token');
@@ -432,20 +430,34 @@ getUserInfoGoogle();
   btnGravar = document.getElementById('btnGravar');
   btnPausar = document.getElementById('btnPausar');
   btnParar = document.getElementById('btnParar');
-  btnProcessar = document.getElementById('btnProcessar');
+  btnProcessar  = document.getElementById('btnProcessar');
+  console.log('Referência btnProcessar:', btnProcessar);
 
 
-if (!btnGravar || !btnPausar || !btnParar) {
-  console.error('Elementos críticos não encontrados!');
+if (!btnGravar || !btnPausar || !btnParar || !btnProcessar) {
+  console.error('Elemento faltando: confira btnGravar, btnPausar, btnParar e btnProcessar');
   return;
 }
     
-  audioPlayer = document.getElementById('audioPlayer');
-
-  
+  audioPlayer = document.getElementById('audioPlayer');  
   btnUpload = document.getElementById('btnUpload');
   btnDownload = document.getElementById('btnDownload');
   statusMsg = document.getElementById('statusMsg');
+
+  // 4) Listener de “Processar Áudio”
+  btnProcessar.addEventListener('click', () => {
+    console.log('>>> btnProcessar clicado');
+    statusMsg.textContent = "Processando áudio, aguarde...";
+    btnProcessar.disabled = true;
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      paradaSolicitadaPeloUsuario = true;
+      gravandoAutomatico = false;
+      mediaRecorder.stop();
+      console.log('MediaRecorder.stop() chamado');
+    } else {
+      console.warn('MediaRecorder não está ativo ao clicar em Processar');
+    }
+  });
   
   modalGravador = document.getElementById('modalGravador');
   btnCloseGravador = document.getElementById('btnCloseGravador');
@@ -477,6 +489,12 @@ if (!btnGravar || !btnPausar || !btnParar) {
   pdfFileName = document.getElementById('pdfFileName');
   btnUploadPdf = document.getElementById('btnUploadPdf');
   statusMsgPdf = document.getElementById('statusMsgPdf');
+
+  // **ANTES** de registrar o listener, adicione:
+  btnProcessar = document.getElementById('btnProcessar');
+  console.log('Referência btnProcessar:', btnProcessar);
+
+  
 
   // EVENT LISTENERS
   logoArea.onclick = () => ensureAccessToken(()=>{});
@@ -620,7 +638,7 @@ gravacaoTimerId = setTimeout(() => {
       btnGravar.disabled = true;
       btnPausar.disabled = false;
       btnParar.disabled  = false;
-      statusMsg.textContent = 'Gravando... (Pode iniciar a reunião)';
+      statusMsg.textContent = 'Gravando... (Limite máx. de 40min)';
       audioPlayer.style.display = 'none';
       btnUpload.style.display  = 'none';
     };
