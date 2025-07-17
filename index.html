@@ -396,7 +396,7 @@ async function subirAudio () {
   // 2.3 – corta o arquivo em partes e envia
   statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive…';
 
-  const PART_SIZE = 0.2 * 1024 * 1024;                 // 10 MB (mude se quiser)
+  const PART_SIZE = 10 * 1024 * 1024;                 // 10 MB (mude se quiser)
   const partes = splitBlob(audioBlobGlobal, PART_SIZE);
 
   for (let i = 0; i < partes.length; i++) {
