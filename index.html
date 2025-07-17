@@ -195,7 +195,7 @@ let profileLogo = null;
   
 
 /* CONFIGS – TROQUE para os seus: */
-const TAMANHO_MAX_PARTE = 0.2 * 1024 * 1024;
+const TAMANHO_MAX_PARTE = 15 * 1024 * 1024;
 const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
 const API_KEY = 'AIzaSyDyKnas6na8NR_mVwvfefA7nOjTd6Pj1B4';
 // ➜ permite criar e atualizar arquivos no Drive do usuário
@@ -396,7 +396,7 @@ async function subirAudio () {
   // 2.3 – corta o arquivo em partes e envia
   statusMsg.textContent = 'Enviando arquivo(s) para o Google Drive…';
 
-  const PART_SIZE = 0.2 * 1024 * 1024;                 // 10 MB (mude se quiser)
+  const PART_SIZE = 15 * 1024 * 1024;                 // 10 MB (mude se quiser)
   const partes = splitBlob(audioBlobGlobal, PART_SIZE);
 
   for (let i = 0; i < partes.length; i++) {
