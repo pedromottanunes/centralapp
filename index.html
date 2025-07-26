@@ -73,11 +73,14 @@
   const MAX_AUDIO_MB = 20;
   const MAX_AUDIO_BYTES = MAX_AUDIO_MB * 1024 * 1024;
 
-  // == Google Drive OAuth2 Config (Preencha com seu CLIENT_ID e API_KEY) ==
+  // == Google Drive OAuth2 Config ==
   const CLIENT_ID = '1078695213241-k5h9kpca2vfdbj52eu1n9qgn7as995fa.apps.googleusercontent.com';
   const API_KEY   = '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';
   const SCOPES = 'https://www.googleapis.com/auth/drive.file';
   const PASTA_ID = '1ll1gBwCisRkDv1yv-mYQONa2DckYL4hG'; // OU null para raiz
+
+  // == Webhook Make ==
+  const WEBHOOK_URL = "https://hook.us2.make.com/xf86x73qs3hfdisdc4vc2xxfww6dxyri";
 
   // =============================
 
@@ -104,7 +107,7 @@
     btnPausar.onclick = pausarGravacao;
     btnParar.onclick = pararGravacao;
     btnDownload.onclick = baixarAudio;
-    btnGoogleDrive.onclick = enviarParaGoogleDrive;
+    btnGoogleDrive.onclick = salvarGoogleDriveEWebhook;
   };
 
   function abrirGravador() {
@@ -232,19 +235,22 @@
     statusMsg.textContent = 'Arquivo baixado!';
   }
 
-  // === Google Drive Upload (OAuth 2) ===
-  function enviarParaGoogleDrive() {
+  // Função combinada: salva no Google Drive e envia Webhook para o Make
+  function salvarGoogleDriveEWebhook() {
     if (!audioBlob) {
       alert('Nenhum áudio disponível para enviar!');
       return;
     }
     statusMsg.textContent = 'Conectando ao Google Drive...';
 
+    // Gera o nome do arquivo uma vez só, para os dois usos
+    const nomeArquivo = `gravacao_${new Date().toISOString().replace(/[:.]/g,'-')}.webm`;
+
     ensureDriveAuth(async function() {
       statusMsg.textContent = 'Enviando para o Google Drive...';
 
       const metadata = {
-        name: `gravacao_${new Date().toISOString().replace(/[:.]/g,'-')}.webm`,
+        name: nomeArquivo,
         mimeType: audioBlob.type,
         parents: PASTA_ID ? [PASTA_ID] : undefined
       };
@@ -253,47 +259,82 @@
       form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       form.append('file', audioBlob);
 
+      let driveResult = {};
       try {
         const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
           method: 'POST',
           headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
           body: form,
         });
-        const result = await response.json();
-        if(result.id){
-          statusMsg.innerHTML = 'Enviado ao Google Drive! <a href="' + result.webViewLink + '" target="_blank">Abrir arquivo</a>';
+        driveResult = await response.json();
+        if(driveResult.id){
+          statusMsg.innerHTML = 'Enviado ao Google Drive! <a href="' + driveResult.webViewLink + '" target="_blank">Abrir arquivo</a>';
         }else{
-          statusMsg.textContent = 'Falha ao enviar: ' + (result.error && result.error.message ? result.error.message : 'Erro desconhecido');
+          statusMsg.textContent = 'Falha ao enviar: ' + (driveResult.error && driveResult.error.message ? driveResult.error.message : 'Erro desconhecido');
         }
       } catch(e){
         statusMsg.textContent = 'Erro na conexão com o Google Drive.';
       }
+
+      // Agora envia o Webhook com o nome e arquivo em base64
+      statusMsg.textContent += '\nEnviando arquivo via Webhook...';
+
+      blobToBase64(audioBlob, function(base64data) {
+        fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            filename: nomeArquivo,
+            filedata: base64data
+          })
+        })
+        .then(r => {
+          if (r.ok) {
+            statusMsg.innerHTML += '<br>Arquivo enviado ao Make com sucesso!';
+          } else {
+            statusMsg.innerHTML += '<br>Falha ao enviar arquivo para o Make.';
+          }
+        })
+        .catch(() => {
+          statusMsg.innerHTML += '<br>Erro na conexão com o webhook do Make.';
+        });
+      });
     });
   }
 
+  // Utilitário: converte Blob para base64 (para envio ao Make)
+  function blobToBase64(blob, callback) {
+    const reader = new FileReader();
+    reader.onloadend = function() {
+      // Remove "data:audio/webm;base64," do início
+      const base64 = reader.result.split(',')[1];
+      callback(base64);
+    };
+    reader.readAsDataURL(blob);
+  }
 
-function ensureDriveAuth(callback) {
-  // Sempre mostra a tela de escolha de conta
-  gapi.load('client', () => {
-    gapi.client.init({ apiKey: API_KEY }).then(() => {
-      const tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: (resp) => {
-          if (resp && resp.access_token) {
-            accessToken = resp.access_token;
-            callback();
-          } else {
-            statusMsg.textContent = 'Falha ao autenticar no Google Drive.';
+  // === Google Auth ===
+  function ensureDriveAuth(callback) {
+    // Sempre mostra a tela de escolha de conta
+    gapi.load('client', () => {
+      gapi.client.init({ apiKey: API_KEY }).then(() => {
+        const tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: (resp) => {
+            if (resp && resp.access_token) {
+              accessToken = resp.access_token;
+              callback();
+            } else {
+              statusMsg.textContent = 'Falha ao autenticar no Google Drive.';
+            }
           }
-        }
+        });
+        // SEMPRE força prompt de escolha de conta
+        tokenClient.requestAccessToken({ prompt: 'select_account' });
       });
-      // SEMPRE força prompt de escolha de conta
-      tokenClient.requestAccessToken({ prompt: 'select_account' });
     });
-  });
-}
-
+  }
 
   // === Visualização gráfica ===
   function iniciarVisualizador(stream) {
